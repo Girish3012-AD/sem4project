@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+
+{% block title %}Student Dashboard | AcademiaPro{% endblock %}
+
+{% block content %}
+<section class="page-header">
+    <span class="eyebrow">Student Dashboard</span>
+    <h1 class="page-header__title">Keep your academic progress clear and on schedule.</h1>
+    <p class="page-header__text">Track attendance health, review your latest updates, and stay aligned with upcoming academic work from one clean workspace.</p>
+    <div class="page-header__meta">
+        {% if current_user.branch_ref %}
+        <span class="badge badge-soft">{{ current_user.branch_ref.name }}</span>
+        {% endif %}
+        {% if current_user.division_ref %}
+        <span class="badge badge-info">Division {{ current_user.division_ref.name }}</span>
+        {% endif %}
+        <span class="badge {% if at_risk %}badge-risk{% else %}badge-verified{% endif %}">
+            {{ 'Attendance attention needed' if at_risk else 'Attendance in good standing' }}
+        </span>
+    </div>
+    <div class="page-header__actions">
+        <a href="{{ url_for('student.calendar') }}" class="btn btn-primary">Calendar</a>
+        <a href="{{ url_for('student.assignments') }}" class="btn btn-primary">Assignments</a>
+        <a href="{{ url_for('student.leave_requests') }}" class="btn btn-primary">Leave Requests</a>
+        <a href="{{ url_for('student.attendance') }}" class="btn btn-primary">View Attendance</a>
+        <a href="{{ url_for('student.results') }}" class="btn btn-outline">Check Results</a>
+        <a href="{{ url_for('student.timetable') }}" class="btn btn-outline">Open Timetable</a>
+    </div>
+</section>
+
+<section class="stats-grid">
+    <article class="stat-card {% if at_risk %}is-danger{% else %}is-success{% endif %}">
+        <div class="stat-card__top">
+            <div>
+                <span class="stat-card__label">Attendance Health</span>
+                <p class="stat-card__value">{{ 'At Risk' if at_risk else 'Stable' }}</p>
+            </div>
+            <span class="stat-card__icon">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M12 9v4M12 17h.01" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path>
+                    <path d="M10.3 3.8L1.8 18A2 2 0 0 0 3.5 21h17a2 2 0 0 0 1.7-3L13.7 3.8a2 2 0 0 0-3.4 0z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"></path>
+                </svg>
+            </span>
+        </div>
+        <p class="stat-card__hint">Stay above the 75% threshold to avoid attendance warnings.</p>
+    </article>
+
+    <article class="stat-card">
+        <div class="stat-card__top">
+            <div>
+                <span class="stat-card__label">Overall Attendance</span>
+                <p class="stat-card__value">{{ attendance_summary.percentage }}%</p>
+            </div>
+            <span class="stat-card__icon">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M5 12l4 4L19 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
+                </svg>
+            </span>
+        </div>
+        <p class="stat-card__hint">{{ attendance_summary.attended_sessions }} attended sessions out of {{ attendance_summary.total_sessions }} total.</p>
+    </article>
+
+    <article class="stat-card {% if prediction == 'At Risk' %}is-danger{% elif prediction == 'Average' %}is-warning{% elif prediction == 'Excellent' %}is-success{% endif %}">
+        <div class="stat-card__top">
+            <div>
+                <span class="stat-card__label">Performance Trend</span>
+                <p class="stat-card__value">{{ prediction }}</p>
+            </div>
+            <span class="stat-card__icon">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M4 19h16M7 15l3-3 2 2 5-6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
+                </svg>
+            </span>
+        </div>
+        <p class="stat-card__hint">Use attendance and results together to keep your performance curve moving upward.</p>
+    </article>
+
+    <article class="stat-card">
+        <div class="stat-card__top">
+            <div>
+                <span class="stat-card__label">New Updates</span>
+                <p class="stat-card__value">{{ notifications|length }}</p>
+            </div>
+            <span class="stat-card__icon">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M15 17H5l1.4-1.4A2 2 0 0 0 7 14.2V10a5 5 0 1 1 10 0v4.2a2 2 0 0 0 .6 1.4L19 17h-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path>
+                    <path d="M10 20a2 2 0 0 0 4 0" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"></path>
+                </svg>
+            </span>
+        </div>
+        <p class="stat-card__hint">Recent branch-wide and student-specific announcements are shown below.</p>
+    </article>
+</section>
+
+<section class="panel">
+    <div class="panel-header">
+        <div>
+            <h2 class="panel-title">Recent Announcements</h2>
+            <p class="panel-subtitle">Updates shared by your branch leadership and academic teams.</p>
+        </div>
+    </div>
+
+    {% if notifications %}
+    <div class="notice-list">
+        {% for n in notifications %}
+        <article class="notice-item">
+            <span class="notice-item__bar" aria-hidden="true"></span>
+            <div>
+                <div class="notice-item__meta">
+                    <span class="badge badge-soft">Announcement</span>
+                    <time>{{ n.created_at.strftime('%d %b %Y, %I:%M %p') }}</time>
+                </div>
+                <p class="notice-item__message">{{ n.message }}</p>
+            </div>
+        </article>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <h3>No announcements yet</h3>
+        <p>Your branch updates will appear here as soon as they are published.</p>
+    </div>
+    {% endif %}
+</section>
+{% endblock %}

@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block title %}Report Generation | AcademiaPro{% endblock %}
+
+{% block content %}
+<section class="page-header">
+    <span class="eyebrow">Report Generation System</span>
+    <h1 class="page-header__title">Generate clean academic reports whenever you need them.</h1>
+    <p class="page-header__text">Open printable attendance, semester result, and remarks reports with live data from your student profile.</p>
+    <div class="page-header__actions">
+        <a href="{{ url_for('student.performance_dashboard') }}" class="btn btn-primary">Performance Dashboard</a>
+        <a href="{{ url_for('student.results') }}" class="btn btn-outline">Released Results</a>
+    </div>
+</section>
+
+<section class="stats-grid">
+    <article class="stat-card">
+        <div class="stat-card__top">
+            <div>
+                <span class="stat-card__label">Attendance Snapshot</span>
+                <p class="stat-card__value">{{ reports_overview.attendance_percentage }}%</p>
+            </div>
+            <span class="stat-card__icon">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M9 11l3 3L22 4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
+                    <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
+                </svg>
+            </span>
+        </div>
+        <p class="stat-card__hint">Current monthly attendance for {{ reports_overview.month_label }}.</p>
+    </article>
+
+    <article class="stat-card">
+        <div class="stat-card__top">
+            <div>
+                <span class="stat-card__label">Result Snapshot</span>
+                <p class="stat-card__value">{{ reports_overview.result_percentage }}%</p>
+            </div>
+            <span class="stat-card__icon">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M4 19h16M7 15l3-3 2 2 5-6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
+                </svg>
+            </span>
+        </div>
+        <p class="stat-card__hint">Latest available semester result average{% if reports_overview.semester %} for semester {{ reports_overview.semester }}{% endif %}.</p>
+    </article>
+
+    <article class="stat-card">
+        <div class="stat-card__top">
+            <div>
+                <span class="stat-card__label">Generated Remarks</span>
+                <p class="stat-card__value">{{ reports_overview.remark_count }}</p>
+            </div>
+            <span class="stat-card__icon">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M8 10h8M8 14h5M5 4h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H9l-4 3V6a2 2 0 0 1 2-2z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"></path>
+                </svg>
+            </span>
+        </div>
+        <p class="stat-card__hint">Auto-generated observations built from attendance and performance.</p>
+    </article>
+</section>
+
+<section class="feature-grid">
+    <article class="feature-card">
+        <span class="eyebrow">Report 01</span>
+        <h2>Monthly Attendance Report</h2>
+        <p>View subject-wise attendance totals, attended lectures, and overall percentage for a selected month.</p>
+        <div class="chart-meta">
+            <span class="badge badge-soft">Printable layout</span>
+            <span class="badge badge-info">Subject-wise breakdown</span>
+        </div>
+        <div class="page-header__actions">
+            <a href="{{ url_for('student.monthly_attendance_report') }}" class="btn btn-primary">Open Report</a>
+            <a href="{{ url_for('student.monthly_attendance_report_api') }}" class="btn btn-outline">JSON API</a>
+        </div>
+    </article>
+
+    <article class="feature-card">
+        <span class="eyebrow">Report 02</span>
+        <h2>Semester Result Report</h2>
+        <p>Review semester-wise totals, subject scores, percentages, and pass or fail status in a structured sheet.</p>
+        <div class="chart-meta">
+            <span class="badge badge-soft">Semester filter</span>
+            <span class="badge badge-info">Pass / Fail status</span>
+        </div>
+        <div class="page-header__actions">
+            <a href="{{ url_for('student.semester_result_report') }}" class="btn btn-primary">Open Report</a>
+            <a href="{{ url_for('student.semester_result_report_api') }}" class="btn btn-outline">JSON API</a>
+        </div>
+    </article>
+
+    <article class="feature-card">
+        <span class="eyebrow">Report 03</span>
+        <h2>Remarks Report</h2>
+        <p>Generate auto remarks based on attendance level, result performance, and current academic risk indicators.</p>
+        <div class="chart-meta">
+            <span class="badge badge-soft">Auto insights</span>
+            <span class="badge badge-info">Risk level</span>
+        </div>
+        <div class="page-header__actions">
+            <a href="{{ url_for('student.remarks_report') }}" class="btn btn-primary">Open Report</a>
+            <a href="{{ url_for('student.remarks_report_api') }}" class="btn btn-outline">JSON API</a>
+        </div>
+    </article>
+</section>
+{% endblock %}

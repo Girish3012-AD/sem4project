@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Branches | AcademiaPro{% endblock %}
+
+{% block content %}
+<section class="page-header">
+    <span class="eyebrow">Branch Management</span>
+    <h1 class="page-header__title">Create and review academic branches.</h1>
+    <p class="page-header__text">Branches structure the platform for HOD management, faculty assignments, student onboarding, and academic workflows.</p>
+</section>
+
+<section class="grid-two">
+    <div class="panel">
+        <div class="panel-header">
+            <div>
+                <h2 class="panel-title">Create New Branch</h2>
+                <p class="panel-subtitle">Add a new branch so it becomes available during role-based signup and management workflows.</p>
+            </div>
+        </div>
+
+        <form method="POST" action="{{ url_for('admin.manage_branches') }}">
+            <div class="form-group">
+                <label for="name">Branch Name</label>
+                <input type="text" name="name" id="name" required placeholder="e.g. Computer Science">
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Add Branch</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="panel table-panel">
+        <div class="panel-header">
+            <div>
+                <h2 class="panel-title">Existing Branches</h2>
+                <p class="panel-subtitle">All branches currently configured across the platform.</p>
+            </div>
+        </div>
+
+        {% if branches %}
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for b in branches %}
+                    <tr>
+                        <td>{{ b.id }}</td>
+                        <td><strong>{{ b.name }}</strong></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="table-toolbar">
+            <div class="empty-state">
+                <h3>No branches created</h3>
+                <p>Add the first branch to start onboarding HODs, faculty members, and students.</p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

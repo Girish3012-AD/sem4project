@@ -1,0 +1,278 @@
+{% extends "base.html" %}
+
+{% block title %}{{ page_title }} | AcademiaPro{% endblock %}
+
+{% block content %}
+<section class="page-header">
+    <span class="eyebrow">{{ page_title }}</span>
+    <h1 class="page-header__title">{{ page_heading }}</h1>
+    <p class="page-header__text">{{ page_description }}</p>
+    <div class="page-header__meta">
+        {% if current_user.branch_ref %}
+        <span class="badge badge-soft">{{ current_user.branch_ref.name }}</span>
+        {% endif %}
+        <span class="badge badge-info">Semester {{ calendar_data.semester }}</span>
+        <span class="badge badge-risk">{{ calendar_data.summary.exams }} exam{{ '' if calendar_data.summary.exams == 1 else 's' }}</span>
+        <span class="badge badge-verified">{{ calendar_data.summary.holidays }} holiday{{ '' if calendar_data.summary.holidays == 1 else 's' }}</span>
+        <span class="badge badge-info">{{ calendar_data.summary.events }} event{{ '' if calendar_data.summary.events == 1 else 's' }}</span>
+    </div>
+    <div class="page-header__actions">
+        <a href="{{ url_for(back_endpoint) }}" class="btn btn-outline">Back to Dashboard</a>
+        {% if can_manage %}
+        <a href="{{ url_for('hod.exams') }}" class="btn btn-primary">Exam Management</a>
+        {% endif %}
+    </div>
+</section>
+
+<section class="panel panel--tight">
+    <div class="panel-header">
+        <div>
+            <h2 class="panel-title">Semester Filter</h2>
+            <p class="panel-subtitle">View the calendar for your branch and switch between semester-specific schedules without leaving the monthly view.</p>
+        </div>
+    </div>
+
+    <form method="GET" class="report-filter-form">
+        <input type="hidden" name="month" value="{{ calendar_data.month }}">
+        <input type="hidden" name="year" value="{{ calendar_data.year }}">
+        <div class="report-filter-grid report-filter-grid--compact">
+            <div class="form-group">
+                <label for="semester">Semester</label>
+                <select name="semester" id="semester">
+                    {% for semester in calendar_data.semester_options %}
+                    <option value="{{ semester }}" {% if semester == calendar_data.semester %}selected{% endif %}>Semester {{ semester }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Apply Semester</button>
+        </div>
+    </form>
+</section>
+
+{% if can_manage %}
+<section class="grid-two">
+    <article class="panel">
+        <div class="panel-header">
+            <div>
+                <h2 class="panel-title">{{ 'Edit Calendar Event' if edit_event else 'Add Calendar Event' }}</h2>
+                <p class="panel-subtitle">Only HODs can create, update, or remove calendar items for their own branch and semester.</p>
+            </div>
+        </div>
+
+        <form method="POST" action="{{ url_for(update_endpoint, event_id=edit_event.id) if edit_event else url_for(create_endpoint) }}">
+            <input type="hidden" name="month" value="{{ calendar_data.month }}">
+            <input type="hidden" name="year" value="{{ calendar_data.year }}">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="title">Title</label>
+                    <input type="text" name="title" id="title" required value="{{ edit_event.title if edit_event else '' }}" placeholder="e.g. TT-1 or Annual Gathering">
+                </div>
+                <div class="form-group">
+                    <label for="date">Date</label>
+                    <input type="date" name="date" id="date" required value="{{ edit_event.date.isoformat() if edit_event else '' }}">
+                </div>
+            </div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="type">Type</label>
+                    <select name="type" id="type" required>
+                        <option value="" disabled {% if not edit_event %}selected{% endif %}>Select type</option>
+                        <option value="exam" {% if edit_event and edit_event.type == 'exam' %}selected{% endif %}>Exam</option>
+                        <option value="holiday" {% if edit_event and edit_event.type == 'holiday' %}selected{% endif %}>Holiday</option>
+                        <option value="event" {% if edit_event and edit_event.type == 'event' %}selected{% endif %}>Event</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="event_semester">Semester</label>
+                    <select name="semester" id="event_semester" required>
+                        {% for semester in calendar_data.semester_options %}
+                        <option value="{{ semester }}" {% if (edit_event and edit_event.semester == semester) or (not edit_event and semester == calendar_data.semester) %}selected{% endif %}>Semester {{ semester }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="description">Description</label>
+                <textarea name="description" id="description" rows="4" placeholder="Optional details for the selected date">{{ edit_event.description if edit_event and edit_event.description else '' }}</textarea>
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">{{ 'Update Event' if edit_event else 'Create Event' }}</button>
+                {% if edit_event %}
+                <a href="{{ url_for(calendar_endpoint, semester=calendar_data.semester, month=calendar_data.month, year=calendar_data.year) }}" class="btn btn-outline">Cancel Edit</a>
+                {% endif %}
+            </div>
+        </form>
+    </article>
+
+    <article class="panel">
+        <div class="panel-header">
+            <div>
+                <h2 class="panel-title">Calendar Rules</h2>
+                <p class="panel-subtitle">Keep calendar entries accurate, semester-specific, and easy to understand for faculty and students.</p>
+            </div>
+        </div>
+        <div class="insight-list">
+            <article class="insight-item">
+                <span class="insight-item__marker" aria-hidden="true"></span>
+                <p>Every event is stored against a branch and semester, so Sem 4 and Sem 5 calendars stay separate even inside the same branch.</p>
+            </article>
+            <article class="insight-item">
+                <span class="insight-item__marker" aria-hidden="true"></span>
+                <p>Faculty and students can only view the calendar for their own branch, while HODs manage entries for their branch only.</p>
+            </article>
+            <article class="insight-item">
+                <span class="insight-item__marker" aria-hidden="true"></span>
+                <p>Use descriptions for extra context like venue, ERP tasks, or monitoring notes when an event title needs more detail.</p>
+            </article>
+        </div>
+    </article>
+</section>
+{% endif %}
+
+<section class="calendar-layout" id="academicCalendar">
+    <article class="panel calendar-panel">
+        <div class="panel-header calendar-panel__header">
+            <div>
+                <h2 class="panel-title">{{ calendar_data.month_label }}</h2>
+                <p class="panel-subtitle">Monthly academic overview for semester {{ calendar_data.semester }} with exams, holidays, and events grouped date by date.</p>
+            </div>
+            <div class="calendar-toolbar">
+                <a href="{{ url_for(calendar_endpoint, semester=calendar_data.semester, month=calendar_data.previous_month, year=calendar_data.previous_year) }}" class="btn btn-outline btn-sm">Previous</a>
+                <a href="{{ url_for(calendar_endpoint, semester=calendar_data.semester) }}" class="btn btn-outline btn-sm">Current Month</a>
+                <a href="{{ url_for(calendar_endpoint, semester=calendar_data.semester, month=calendar_data.next_month, year=calendar_data.next_year) }}" class="btn btn-outline btn-sm">Next</a>
+            </div>
+        </div>
+
+        <div class="calendar-legend">
+            {% for item in calendar_data.legend %}
+            <span class="calendar-chip {{ item.css_class }}">{{ item.label }}</span>
+            {% endfor %}
+        </div>
+
+        <div class="calendar-grid-shell">
+            <div class="calendar-grid">
+                {% for weekday in calendar_data.weekday_labels %}
+                <div class="calendar-grid__weekday">{{ weekday }}</div>
+                {% endfor %}
+
+                {% for week in calendar_data.weeks %}
+                    {% for day in week %}
+                    <button
+                        type="button"
+                        class="calendar-day js-calendar-day{% if not day.is_current_month %} is-muted{% endif %}{% if day.is_today %} is-today{% endif %}{% if day.is_selected %} is-selected{% endif %}"
+                        data-date-label="{{ day.date.strftime('%d %b %Y') }}"
+                        data-events='{{ day.events|tojson|forceescape }}'>
+                        <span class="calendar-day__number">{{ day.day_number }}</span>
+                        <span class="calendar-day__events">
+                            {% if day.events %}
+                                {% for event in day.events[:3] %}
+                                <span class="calendar-chip calendar-chip--tiny {{ event.css_class }}">{{ event.title }}</span>
+                                {% endfor %}
+                                {% if day.events|length > 3 %}
+                                <span class="calendar-chip calendar-chip--tiny calendar-chip--more">+{{ day.events|length - 3 }} more</span>
+                                {% endif %}
+                            {% else %}
+                            <span class="calendar-day__empty">No items</span>
+                            {% endif %}
+                        </span>
+                    </button>
+                    {% endfor %}
+                {% endfor %}
+            </div>
+        </div>
+    </article>
+
+    <article class="panel calendar-detail-panel">
+        <div class="panel-header">
+            <div>
+                <h2 class="panel-title" id="calendarDetailTitle">{{ calendar_data.selected_day.date.strftime('%d %b %Y') }}</h2>
+                <p class="panel-subtitle" id="calendarDetailSubtitle">
+                    {{ calendar_data.selected_day.events|length }} item{{ '' if calendar_data.selected_day.events|length == 1 else 's' }} scheduled for the selected date.
+                </p>
+            </div>
+        </div>
+
+        <div class="calendar-detail-list" id="calendarDetailList">
+            {% if calendar_data.selected_day.events %}
+                {% for event in calendar_data.selected_day.events %}
+                <article class="calendar-detail-item">
+                    <div class="calendar-detail-item__top">
+                        <span class="badge {{ event.tone }}">{{ event.type_label }}</span>
+                    </div>
+                    <h3>{{ event.title }}</h3>
+                    <p>{{ event.detail }}</p>
+                </article>
+                {% endfor %}
+            {% else %}
+            <div class="empty-state empty-state--compact">
+                <h3>No scheduled items</h3>
+                <p>Select another date to inspect the semester calendar in more detail.</p>
+            </div>
+            {% endif %}
+        </div>
+    </article>
+</section>
+
+<section class="panel table-panel">
+    <div class="panel-header">
+        <div>
+            <h2 class="panel-title">Month Event List</h2>
+            <p class="panel-subtitle">Detailed list of all calendar items in {{ calendar_data.month_label }} for semester {{ calendar_data.semester }}.</p>
+        </div>
+    </div>
+
+    {% if calendar_data.month_events %}
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Title</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                    {% if can_manage %}
+                    <th>Actions</th>
+                    {% endif %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in calendar_data.month_events %}
+                <tr>
+                    <td><strong>{{ row.event.date.strftime('%d %b %Y') }}</strong></td>
+                    <td>{{ row.event.title }}</td>
+                    <td><span class="badge {{ row.tone }}">{{ row.type_label }}</span></td>
+                    <td>{{ row.event.description or 'No additional description' }}</td>
+                    {% if can_manage %}
+                    <td>
+                        <div class="inline-actions">
+                            <a href="{{ url_for(calendar_endpoint, semester=calendar_data.semester, month=calendar_data.month, year=calendar_data.year, edit_event_id=row.event.id) }}" class="btn btn-sm btn-outline">Edit</a>
+                            <form method="POST" action="{{ url_for(delete_endpoint, event_id=row.event.id) }}" class="inline-form">
+                                <input type="hidden" name="semester" value="{{ calendar_data.semester }}">
+                                <input type="hidden" name="month" value="{{ calendar_data.month }}">
+                                <input type="hidden" name="year" value="{{ calendar_data.year }}">
+                                <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                            </form>
+                        </div>
+                    </td>
+                    {% endif %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="table-toolbar">
+        <div class="empty-state">
+            <h3>No calendar items for this month</h3>
+            <p>{{ 'Create the first semester-specific entry to start building this calendar.' if can_manage else 'No academic calendar items are scheduled for this month and semester yet.' }}</p>
+        </div>
+    </div>
+    {% endif %}
+</section>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/academic_calendar.js') }}" defer></script>
+{% endblock %}

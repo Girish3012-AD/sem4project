@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block title %}Enter Marks | AcademiaPro{% endblock %}
+
+{% block content %}
+<section class="page-header">
+    <span class="eyebrow">Marks Entry</span>
+    <h1 class="page-header__title">Enter marks for {{ exam.name }}.</h1>
+    <p class="page-header__text">Record or update exam scores for each verified student in the branch with a focused grading workflow.</p>
+    <div class="page-header__meta">
+        <span class="badge badge-soft">{{ exam.subject.name }}</span>
+        <span class="badge badge-info">{{ exam.date.strftime('%d %b %Y') }}</span>
+        <span class="badge badge-verified">Max {{ exam.max_marks }}</span>
+    </div>
+    <div class="page-header__actions">
+        <a href="{{ url_for('faculty.dashboard') }}" class="btn btn-outline">Back to Dashboard</a>
+    </div>
+</section>
+
+<form method="POST">
+    <section class="panel table-panel">
+        <div class="panel-header">
+            <div>
+                <h2 class="panel-title">Student Marks Sheet</h2>
+                <p class="panel-subtitle">Existing values are pre-filled, so you can revise grades and resubmit without extra steps.</p>
+            </div>
+        </div>
+
+        {% if students %}
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Roll No</th>
+                        <th>Name</th>
+                        <th>Marks Obtained</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for student in students %}
+                    <tr>
+                        <td>{{ student.roll_no or 'N/A' }}</td>
+                        <td><strong>{{ student.first_name }} {{ student.last_name }}</strong></td>
+                        <td>
+                            <input type="number"
+                                   step="0.5"
+                                   min="0"
+                                   max="{{ exam.max_marks }}"
+                                   name="marks_{{ student.id }}"
+                                   value="{{ existing_marks.get(student.id, '') }}"
+                                   placeholder="Enter marks">
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="table-toolbar">
+            <div class="form-actions">
+                <button class="btn btn-primary" type="submit">Save Marks</button>
+            </div>
+        </div>
+        {% else %}
+        <div class="table-toolbar">
+            <div class="empty-state">
+                <h3>No verified students available</h3>
+                <p>Marks entry becomes available once verified students are mapped to this branch.</p>
+            </div>
+        </div>
+        {% endif %}
+    </section>
+</form>
+{% endblock %}

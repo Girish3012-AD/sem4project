@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+
+{% block title %}Sign Up | AcademiaPro{% endblock %}
+
+{% block auth_content %}
+<section class="auth-card auth-card--wide">
+    <div class="auth-card__header">
+        <span class="eyebrow">Get Started</span>
+        <h2>Create your account</h2>
+        <p>Join the academic workspace with a role-based account. Your access becomes active after verification.</p>
+    </div>
+
+    <form method="POST" action="">
+        <div class="form-grid">
+            <div class="form-group">
+                <label for="first_name">First Name</label>
+                <input type="text" name="first_name" id="first_name" required placeholder="Enter first name" value="{{ form_data.first_name or '' }}">
+            </div>
+            <div class="form-group">
+                <label for="last_name">Last Name</label>
+                <input type="text" name="last_name" id="last_name" required placeholder="Enter last name" value="{{ form_data.last_name or '' }}">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="email">Email Address</label>
+            <input type="email" name="email" id="email" required placeholder="name@college.edu" value="{{ form_data.email or '' }}">
+        </div>
+
+        <div class="form-grid">
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" name="password" id="password" required placeholder="Create a secure password">
+            </div>
+            <div class="form-group">
+                <label for="roleSelect">Role</label>
+                <select name="role" id="roleSelect" required onchange="toggleFields()">
+                    <option value="student" {% if (form_data.role or 'student') == 'student' %}selected{% endif %}>Student</option>
+                    <option value="faculty" {% if form_data.role == 'faculty' %}selected{% endif %}>Faculty</option>
+                    <option value="hod" {% if form_data.role == 'hod' %}selected{% endif %}>HOD</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="branch_id">Branch</label>
+            <select name="branch_id" id="branch_id" required onchange="filterDivisions()">
+                <option value="" disabled {% if not form_data.branch_id %}selected{% endif %}>Select branch</option>
+                {% for b in branches %}
+                <option value="{{ b.id }}" {% if form_data.branch_id and form_data.branch_id|int == b.id %}selected{% endif %}>{{ b.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div id="studentFields" class="stack">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="prn">PRN</label>
+                    <input type="text" name="prn" id="prn" placeholder="University PRN" value="{{ form_data.prn or '' }}">
+                </div>
+                <div class="form-group">
+                    <label for="roll_no">Roll Number</label>
+                    <input type="number" name="roll_no" id="roll_no" placeholder="Roll number" value="{{ form_data.roll_no or '' }}">
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="division_id">Division</label>
+                <select name="division_id" id="division_id">
+                    <option value="" data-branch-id="" disabled {% if not form_data.division_id %}selected{% endif %}>Select division</option>
+                    {% for division in divisions %}
+                    <option
+                        value="{{ division.id }}"
+                        data-branch-id="{{ division.branch_id }}"
+                        {% if form_data.division_id and form_data.division_id|int == division.id %}selected{% endif %}>
+                        {{ division.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+                <p class="field-help">Students must be linked to a division so timetable, attendance, and results work correctly.</p>
+            </div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <p class="field-help">PRN must be unique for each student account.</p>
+                </div>
+                <div class="form-group">
+                    <p class="field-help">Roll number must be unique inside the selected division.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary btn-block">Create Account</button>
+        </div>
+
+        <p class="auth-form-footer text-center">
+            Already registered? <a href="{{ url_for('auth.login') }}">Sign in here</a>.
+        </p>
+    </form>
+</section>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    function toggleFields() {
+        var role = document.getElementById('roleSelect').value;
+        var studentFields = document.getElementById('studentFields');
+        var prnField = document.getElementById('prn');
+        var rollField = document.getElementById('roll_no');
+        var divisionField = document.getElementById('division_id');
+        var isStudent = role === 'student';
+
+        studentFields.style.display = isStudent ? 'flex' : 'none';
+        prnField.required = isStudent;
+        rollField.required = isStudent;
+        divisionField.required = isStudent;
+
+        if (!isStudent) {
+            prnField.value = '';
+            rollField.value = '';
+            divisionField.value = '';
+        }
+    }
+
+    function filterDivisions() {
+        var branchId = document.getElementById('branch_id').value;
+        var divisionField = document.getElementById('division_id');
+        var options = divisionField.querySelectorAll('option');
+        var selectedOptionStillVisible = false;
+
+        options.forEach(function(option, index) {
+            if (index === 0) {
+                option.hidden = false;
+                return;
+            }
+
+            var matchesBranch = option.dataset.branchId === branchId;
+            option.hidden = !matchesBranch;
+            if (!matchesBranch && option.selected) {
+                option.selected = false;
+            }
+            if (matchesBranch && option.selected) {
+                selectedOptionStillVisible = true;
+            }
+        });
+
+        if (!selectedOptionStillVisible) {
+            divisionField.value = '';
+        }
+    }
+
+    filterDivisions();
+    toggleFields();
+</script>
+{% endblock %}

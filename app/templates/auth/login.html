@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}Login | AcademiaPro{% endblock %}
+
+{% block auth_content %}
+<section class="auth-card">
+    <div class="auth-card__header">
+        <span class="eyebrow">Welcome Back</span>
+        <h2>Sign in to your workspace</h2>
+        <p>Access attendance, academic records, and notifications from a cleaner campus dashboard.</p>
+    </div>
+
+    <form method="POST" action="">
+        <div class="form-group">
+            <label for="role">Select Role</label>
+            <select name="role" id="role" required>
+                <option value="student">Student</option>
+                <option value="faculty">Faculty</option>
+                <option value="hod">HOD</option>
+                <option value="admin">Admin</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="email">Email</label>
+            <input type="email" name="email" id="email" required placeholder="Enter your email address">
+        </div>
+
+        <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" name="password" id="password" required placeholder="Enter your password">
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary btn-block">Sign In</button>
+        </div>
+
+        <p class="auth-form-footer text-center">
+            <a href="{{ url_for('auth.signup') }}">Create an account</a> if you are new to the platform.
+        </p>
+    </form>
+</section>
+{% endblock %}

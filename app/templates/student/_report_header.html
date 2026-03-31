@@ -1,0 +1,35 @@
+<div class="report-sheet__header">
+    <div>
+        <span class="eyebrow">Student Report</span>
+        <h2>{{ report_title }}</h2>
+        <p>{{ report_description }}</p>
+    </div>
+    <button type="button" class="btn btn-outline js-print-report">Download as PDF</button>
+</div>
+
+<div class="report-student-grid">
+    <article class="report-meta-card">
+        <span class="report-meta-label">Student Name</span>
+        <strong class="report-meta-value">{{ report.student.name }}</strong>
+    </article>
+    <article class="report-meta-card">
+        <span class="report-meta-label">PRN</span>
+        <strong class="report-meta-value">{{ report.student.prn }}</strong>
+    </article>
+    <article class="report-meta-card">
+        <span class="report-meta-label">Roll Number</span>
+        <strong class="report-meta-value">{{ report.student.roll_no }}</strong>
+    </article>
+    <article class="report-meta-card">
+        <span class="report-meta-label">Branch</span>
+        <strong class="report-meta-value">{{ report.student.branch }}</strong>
+    </article>
+    <article class="report-meta-card">
+        <span class="report-meta-label">Division</span>
+        <strong class="report-meta-value">{{ report.student.division }}</strong>
+    </article>
+    <article class="report-meta-card">
+        <span class="report-meta-label">Email</span>
+        <strong class="report-meta-value">{{ report.student.email }}</strong>
+    </article>
+</div>

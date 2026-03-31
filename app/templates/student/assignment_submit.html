@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block title %}Submit Assignment | AcademiaPro{% endblock %}
+
+{% block content %}
+<section class="page-header">
+    <span class="eyebrow">Assignment Submission</span>
+    <h1 class="page-header__title">{{ assignment.title }}</h1>
+    <p class="page-header__text">{{ assignment.description }}</p>
+    <div class="page-header__meta">
+        <span class="badge badge-soft">{{ assignment.subject.name }}</span>
+        <span class="badge badge-info">Due {{ assignment.due_date.strftime('%d %b %Y, %I:%M %p') }}</span>
+        <span class="badge {{ assignment_card.status_tone }}">{{ assignment_card.status }}</span>
+    </div>
+    <div class="page-header__actions">
+        <a href="{{ url_for('student.assignments') }}" class="btn btn-outline">Back to Assignments</a>
+    </div>
+</section>
+
+<section class="grid-two">
+    <article class="panel">
+        <div class="panel-header">
+            <div>
+                <h2 class="panel-title">Submit Your Work</h2>
+                <p class="panel-subtitle">Upload a file, add text, or use both. You can resubmit to update your work.</p>
+            </div>
+        </div>
+
+        <form method="POST" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="submission_text">Submission Text</label>
+                <textarea name="submission_text" id="submission_text" rows="7" placeholder="Paste your response, notes, or a link summary here">{{ submission.submission_text if submission else '' }}</textarea>
+            </div>
+            <div class="form-group">
+                <label for="submission_file">Upload File</label>
+                <input type="file" name="submission_file" id="submission_file">
+                <p class="field-help">Accepted formats: PDF, DOC, DOCX, TXT, PNG, JPG, JPEG, ZIP.</p>
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">{{ 'Update Submission' if submission else 'Submit Assignment' }}</button>
+            </div>
+        </form>
+    </article>
+
+    <article class="panel">
+        <div class="panel-header">
+            <div>
+                <h2 class="panel-title">Submission Status</h2>
+                <p class="panel-subtitle">Current state of your assignment attempt, including grading and feedback.</p>
+            </div>
+        </div>
+
+        <div class="stack">
+            <div class="assignment-card__meta">
+                <div>
+                    <span class="assignment-card__meta-label">Status</span>
+                    <strong>{{ assignment_card.status }}</strong>
+                </div>
+                <div>
+                    <span class="assignment-card__meta-label">Submitted At</span>
+                    <strong>{{ submission.submitted_at.strftime('%d %b %Y, %I:%M %p') if submission else 'Not submitted yet' }}</strong>
+                </div>
+                <div>
+                    <span class="assignment-card__meta-label">Grade</span>
+                    <strong>{{ submission.grade if submission and submission.grade is not none else 'Pending review' }}</strong>
+                </div>
+            </div>
+
+            <div>
+                <span class="assignment-card__meta-label">Current File</span>
+                {% if submission and submission.file_path %}
+                <a href="{{ url_for('static', filename=submission.file_path) }}" class="file-chip" target="_blank">{{ submission.original_file_name or 'Open uploaded file' }}</a>
+                {% else %}
+                <span class="badge badge-neutral">No file uploaded</span>
+                {% endif %}
+            </div>
+
+            <div>
+                <span class="assignment-card__meta-label">Faculty Feedback</span>
+                <p class="assignment-card__feedback-text">{{ submission.feedback if submission and submission.feedback else 'Feedback will appear here once your faculty reviews the submission.' }}</p>
+            </div>
+        </div>
+    </article>
+</section>
+{% endblock %}

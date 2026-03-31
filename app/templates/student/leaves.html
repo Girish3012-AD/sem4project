@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+
+{% block title %}Leave Requests | AcademiaPro{% endblock %}
+
+{% block content %}
+<section class="page-header">
+    <span class="eyebrow">Leave Request System</span>
+    <h1 class="page-header__title">Apply for leave and track guardian approval from one place.</h1>
+    <p class="page-header__text">Submit a leave request with your reason and dates, then follow its approval status without leaving the student workspace.</p>
+    <div class="page-header__meta">
+        <span class="badge badge-info">{{ leave_summary.total }} request{{ '' if leave_summary.total == 1 else 's' }}</span>
+        <span class="badge badge-pending">{{ leave_summary.pending_count }} pending</span>
+        <span class="badge badge-verified">{{ leave_summary.approved_count }} approved</span>
+        <span class="badge badge-risk">{{ leave_summary.rejected_count }} rejected</span>
+    </div>
+    <div class="page-header__actions">
+        <a href="{{ url_for('student.dashboard') }}" class="btn btn-outline">Back to Dashboard</a>
+    </div>
+</section>
+
+<section class="grid-two">
+    <article class="panel">
+        <div class="panel-header">
+            <div>
+                <h2 class="panel-title">Apply for Leave</h2>
+                <p class="panel-subtitle">Share the leave period and reason so your assigned local guardian can review it quickly.</p>
+            </div>
+        </div>
+
+        {% if can_apply_leave %}
+        <form method="POST">
+            <div class="form-group">
+                <label for="reason">Reason</label>
+                <textarea name="reason" id="reason" rows="6" required placeholder="Describe why you are applying for leave"></textarea>
+            </div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="start_date">Start Date</label>
+                    <input type="date" name="start_date" id="start_date" required>
+                </div>
+                <div class="form-group">
+                    <label for="end_date">End Date</label>
+                    <input type="date" name="end_date" id="end_date" required>
+                </div>
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Submit Leave Request</button>
+            </div>
+        </form>
+        {% else %}
+        <div class="empty-state">
+            <h3>No local guardian assigned</h3>
+            <p>Your leave workflow will unlock once a local guardian is mapped to your student profile.</p>
+        </div>
+        {% endif %}
+    </article>
+
+    <article class="panel">
+        <div class="panel-header">
+            <div>
+                <h2 class="panel-title">Guardian Routing</h2>
+                <p class="panel-subtitle">Every leave request is routed only to your assigned local guardian for review.</p>
+            </div>
+        </div>
+
+        {% if guardians %}
+        <div class="guardian-list">
+            {% for guardian in guardians %}
+            <span class="guardian-pill">{{ guardian.first_name }} {{ guardian.last_name }}</span>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state empty-state--compact">
+            <h3>Waiting for assignment</h3>
+            <p>Your academic team has not linked a local guardian yet.</p>
+        </div>
+        {% endif %}
+
+        <div class="insight-list mt-4">
+            <article class="insight-item">
+                <span class="insight-item__marker" aria-hidden="true"></span>
+                <p>New requests begin with a pending status until your guardian reviews them.</p>
+            </article>
+            <article class="insight-item">
+                <span class="insight-item__marker" aria-hidden="true"></span>
+                <p>Approved and rejected requests stay visible here as your leave history.</p>
+            </article>
+        </div>
+    </article>
+</section>
+
+<section class="leave-board">
+    {% if leave_cards %}
+        {% for card in leave_cards %}
+        <article class="leave-card">
+            <div class="leave-card__header">
+                <div>
+                    <span class="badge badge-soft">Leave Request</span>
+                    <h2>{{ card.request.start_date.strftime('%d %b %Y') }} to {{ card.request.end_date.strftime('%d %b %Y') }}</h2>
+                    <p>
+                        Routed to
+                        {% if card.guardian_names %}
+                            {{ card.guardian_names|join(', ') }}
+                        {% else %}
+                            assigned guardian
+                        {% endif %}
+                    </p>
+                </div>
+                <span class="badge {{ card.status_tone }}">{{ card.request.status }}</span>
+            </div>
+
+            <div class="leave-card__meta">
+                <div class="leave-card__meta-item">
+                    <span class="assignment-card__meta-label">Duration</span>
+                    <strong>{{ card.day_count }} day{{ '' if card.day_count == 1 else 's' }}</strong>
+                </div>
+                <div class="leave-card__meta-item">
+                    <span class="assignment-card__meta-label">Submitted</span>
+                    <strong>{{ card.request.created_at.strftime('%d %b %Y, %I:%M %p') }}</strong>
+                </div>
+                <div class="leave-card__meta-item">
+                    <span class="assignment-card__meta-label">Reviewed By</span>
+                    <strong>{{ card.request.reviewer.first_name ~ ' ' ~ card.request.reviewer.last_name if card.request.reviewer else 'Awaiting review' }}</strong>
+                </div>
+                <div class="leave-card__meta-item">
+                    <span class="assignment-card__meta-label">Reviewed At</span>
+                    <strong>{{ card.request.reviewed_at.strftime('%d %b %Y, %I:%M %p') if card.request.reviewed_at else 'Pending' }}</strong>
+                </div>
+            </div>
+
+            <div class="leave-card__reason">
+                <span class="assignment-card__meta-label">Reason</span>
+                <p>{{ card.request.reason }}</p>
+            </div>
+        </article>
+        {% endfor %}
+    {% else %}
+    <div class="panel">
+        <div class="empty-state">
+            <h3>No leave requests yet</h3>
+            <p>Your submitted leave requests will appear here with pending, approved, or rejected status updates.</p>
+        </div>
+    </div>
+    {% endif %}
+</section>
+{% endblock %}

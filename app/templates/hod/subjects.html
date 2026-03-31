@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Subjects | AcademiaPro{% endblock %}
+
+{% block content %}
+<section class="page-header">
+    <span class="eyebrow">Subject Management</span>
+    <h1 class="page-header__title">Create and review branch subjects.</h1>
+    <p class="page-header__text">Set up the academic structure that faculty and students will use for exams, attendance, and performance tracking.</p>
+</section>
+
+<section class="grid-two">
+    <div class="panel">
+        <div class="panel-header">
+            <div>
+                <h2 class="panel-title">Add New Subject</h2>
+                <p class="panel-subtitle">Create a subject and map it to the correct semester for your branch.</p>
+            </div>
+        </div>
+
+        <form method="POST">
+            <div class="form-group">
+                <label for="name">Subject Name</label>
+                <input type="text" name="name" id="name" required placeholder="e.g. Data Structures">
+            </div>
+            <div class="form-group">
+                <label for="semester">Semester</label>
+                <input type="number" name="semester" id="semester" required min="1" max="8" placeholder="Enter semester number">
+            </div>
+            <div class="form-actions">
+                <button class="btn btn-primary" type="submit">Create Subject</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="panel table-panel">
+        <div class="panel-header">
+            <div>
+                <h2 class="panel-title">Existing Subjects</h2>
+                <p class="panel-subtitle">Subjects currently active inside your branch.</p>
+            </div>
+        </div>
+
+        {% if subjects %}
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Semester</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for sub in subjects %}
+                    <tr>
+                        <td><strong>{{ sub.name }}</strong></td>
+                        <td>Sem {{ sub.semester }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="table-toolbar">
+            <div class="empty-state">
+                <h3>No subjects yet</h3>
+                <p>Create your first subject to start structuring exams, attendance, and faculty assignments.</p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

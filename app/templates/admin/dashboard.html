@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard | AcademiaPro{% endblock %}
+
+{% block content %}
+<section class="page-header">
+    <span class="eyebrow">Admin Dashboard</span>
+    <h1 class="page-header__title">Monitor the platform with a clean global operations view.</h1>
+    <p class="page-header__text">Keep track of branches, faculty, students, and HOD verifications from one modern control panel.</p>
+    <div class="page-header__actions">
+        <a href="{{ url_for('admin.manage_branches') }}" class="btn btn-primary">Manage Branches</a>
+    </div>
+</section>
+
+<section class="stats-grid">
+    <article class="stat-card">
+        <div class="stat-card__top">
+            <div>
+                <span class="stat-card__label">Total Branches</span>
+                <p class="stat-card__value">{{ stats.branches }}</p>
+            </div>
+            <span class="stat-card__icon">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M6 3h12v6H6zm-2 10h7v8H4zm9 0h7v8h-7z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"></path>
+                </svg>
+            </span>
+        </div>
+        <p class="stat-card__hint">Academic branches currently created across the platform.</p>
+    </article>
+
+    <article class="stat-card">
+        <div class="stat-card__top">
+            <div>
+                <span class="stat-card__label">Total Faculty</span>
+                <p class="stat-card__value">{{ stats.faculty }}</p>
+            </div>
+            <span class="stat-card__icon">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"></path>
+                    <circle cx="9.5" cy="7" r="3" fill="none" stroke="currentColor" stroke-width="1.6"></circle>
+                    <path d="M20 8v6M17 11h6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"></path>
+                </svg>
+            </span>
+        </div>
+        <p class="stat-card__hint">Faculty accounts registered on the platform across branches.</p>
+    </article>
+
+    <article class="stat-card">
+        <div class="stat-card__top">
+            <div>
+                <span class="stat-card__label">Total Students</span>
+                <p class="stat-card__value">{{ stats.students }}</p>
+            </div>
+            <span class="stat-card__icon">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"></path>
+                    <circle cx="9.5" cy="7" r="3" fill="none" stroke="currentColor" stroke-width="1.6"></circle>
+                </svg>
+            </span>
+        </div>
+        <p class="stat-card__hint">Student accounts recorded across all configured branches.</p>
+    </article>
+
+    <article class="stat-card {% if pending_hods|length %}is-warning{% else %}is-success{% endif %}">
+        <div class="stat-card__top">
+            <div>
+                <span class="stat-card__label">Pending HODs</span>
+                <p class="stat-card__value">{{ pending_hods|length }}</p>
+            </div>
+            <span class="stat-card__icon">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M12 9v4M12 17h.01" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path>
+                    <path d="M10.3 3.8L1.8 18A2 2 0 0 0 3.5 21h17a2 2 0 0 0 1.7-3L13.7 3.8a2 2 0 0 0-3.4 0z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"></path>
+                </svg>
+            </span>
+        </div>
+        <p class="stat-card__hint">HOD accounts waiting for final admin approval.</p>
+    </article>
+</section>
+
+<section class="panel table-panel">
+    <div class="panel-header">
+        <div>
+            <h2 class="panel-title">Pending HOD Verifications</h2>
+            <p class="panel-subtitle">Approve newly registered HOD accounts so they can manage their branch workflows.</p>
+        </div>
+    </div>
+
+    {% if pending_hods %}
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Branch ID</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for hod in pending_hods %}
+                <tr>
+                    <td><strong>{{ hod.first_name }} {{ hod.last_name }}</strong></td>
+                    <td>{{ hod.email }}</td>
+                    <td>{{ hod.branch_id }}</td>
+                    <td>
+                        <form method="POST" action="{{ url_for('admin.verify_hod', user_id=hod.id) }}">
+                            <button type="submit" class="btn btn-success btn-sm">Verify HOD</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="table-toolbar">
+        <div class="empty-state">
+            <h3>No HODs pending verification</h3>
+            <p>All HOD accounts are currently approved and ready to manage their branches.</p>
+        </div>
+    </div>
+    {% endif %}
+</section>
+{% endblock %}

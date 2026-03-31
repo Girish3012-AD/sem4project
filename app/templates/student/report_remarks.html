@@ -1,0 +1,183 @@
+{% extends "base.html" %}
+
+{% block title %}Remarks Report | AcademiaPro{% endblock %}
+
+{% block content %}
+<section class="page-header">
+    <span class="eyebrow">Remarks Report</span>
+    <h1 class="page-header__title">Generate auto remarks from your attendance and performance.</h1>
+    <p class="page-header__text">This report combines attendance levels, result performance, and subject trends to produce actionable academic remarks.</p>
+    <div class="page-header__actions">
+        <a href="{{ url_for('student.reports_home') }}" class="btn btn-outline">Back to Reports</a>
+        <a href="{{ url_for('student.remarks_report_api', month=report.month, year=report.year, semester=report.semester) }}" class="btn btn-primary">Open JSON API</a>
+    </div>
+</section>
+
+<section class="report-page">
+    <div class="panel report-filter-panel">
+        <form method="GET" class="report-filter-form">
+            <div class="report-filter-grid">
+                <div class="form-group">
+                    <label for="month">Month</label>
+                    <select name="month" id="month">
+                        {% for option in month_options %}
+                        <option value="{{ option.value }}" {% if option.value == report.month %}selected{% endif %}>{{ option.label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="year">Year</label>
+                    <input type="number" name="year" id="year" value="{{ report.year }}" min="2000" max="2100">
+                </div>
+                <div class="form-group">
+                    <label for="semester">Semester</label>
+                    <select name="semester" id="semester">
+                        {% if report.available_semesters %}
+                            {% for semester in report.available_semesters %}
+                            <option value="{{ semester }}" {% if semester == report.semester %}selected{% endif %}>Semester {{ semester }}</option>
+                            {% endfor %}
+                        {% else %}
+                            <option value="">No semester data</option>
+                        {% endif %}
+                    </select>
+                </div>
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Refresh Report</button>
+            </div>
+        </form>
+    </div>
+
+    <article class="report-sheet">
+        {% set report_title = 'Remarks Report' %}
+        {% set report_description = 'Auto-generated remarks for ' ~ report.month_label ~ ' using attendance, semester results, and performance trends.' %}
+        {% include "student/_report_header.html" %}
+
+        <div class="report-summary-grid">
+            <article class="report-summary-card">
+                <span class="report-summary-card__label">Attendance</span>
+                <strong class="report-summary-card__value">{{ report.attendance_percentage }}%</strong>
+                <p class="report-summary-card__hint">Attendance percentage used in this report cycle.</p>
+            </article>
+            <article class="report-summary-card">
+                <span class="report-summary-card__label">Result Performance</span>
+                <strong class="report-summary-card__value">{{ report.result_percentage }}%</strong>
+                <p class="report-summary-card__hint">Semester performance percentage for the selected report.</p>
+            </article>
+            <article class="report-summary-card">
+                <span class="report-summary-card__label">Risk Level</span>
+                <strong class="report-summary-card__value">{{ report.risk_level }}</strong>
+                <p class="report-summary-card__hint">Combined academic risk derived from attendance and results.</p>
+            </article>
+            <article class="report-summary-card">
+                <span class="report-summary-card__label">Generated Remarks</span>
+                <strong class="report-summary-card__value">{{ report.remarks|length }}</strong>
+                <p class="report-summary-card__hint">Auto-generated insight statements for your current profile.</p>
+            </article>
+        </div>
+
+        <section class="panel table-panel">
+            <div class="panel-header">
+                <div>
+                    <h2 class="panel-title">Academic Summary</h2>
+                    <p class="panel-subtitle">Core indicators used to generate the remarks below.</p>
+                </div>
+            </div>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Area</th>
+                            <th>Observation</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Attendance</strong></td>
+                            <td>{{ report.attendance_percentage }}% in {{ report.month_label }}</td>
+                            <td>
+                                <span class="badge {% if report.attendance_percentage >= 75 %}badge-verified{% else %}badge-risk{% endif %}">
+                                    {{ 'Healthy' if report.attendance_percentage >= 75 else 'Needs Attention' }}
+                                </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong>Semester Results</strong></td>
+                            <td>{{ report.result_percentage }}%{% if report.semester %} in semester {{ report.semester }}{% endif %}</td>
+                            <td>
+                                <span class="badge {% if report.result_percentage >= 75 %}badge-verified{% elif report.result_percentage >= 50 %}badge-pending{% else %}badge-risk{% endif %}">
+                                    {{ 'Strong' if report.result_percentage >= 75 else 'Moderate' if report.result_percentage >= 50 else 'Weak' }}
+                                </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong>Overall Risk</strong></td>
+                            <td>Combined indicator from attendance and academic performance</td>
+                            <td>
+                                <span class="badge {% if report.risk_level == 'Low' %}badge-verified{% elif report.risk_level == 'Moderate' %}badge-pending{% else %}badge-risk{% endif %}">
+                                    {{ report.risk_level }}
+                                </span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="grid-two">
+            <article class="panel">
+                <div class="panel-header">
+                    <div>
+                        <h2 class="panel-title">Generated Remarks</h2>
+                        <p class="panel-subtitle">Actionable remarks produced from your current academic profile.</p>
+                    </div>
+                </div>
+                <div class="insight-list">
+                    {% for remark in report.remarks %}
+                    <article class="insight-item">
+                        <span class="insight-item__marker" aria-hidden="true"></span>
+                        <p>{{ remark }}</p>
+                    </article>
+                    {% endfor %}
+                </div>
+            </article>
+
+            <article class="panel">
+                <div class="panel-header">
+                    <div>
+                        <h2 class="panel-title">Focus Summary</h2>
+                        <p class="panel-subtitle">Subjects and areas that stand out most in your current report.</p>
+                    </div>
+                </div>
+                <div class="stack">
+                    <div>
+                        <span class="stat-card__label">Weak Subjects</span>
+                        <div class="chart-meta">
+                            {% if report.weak_subjects %}
+                                {% for subject in report.weak_subjects %}
+                                <span class="badge badge-risk">{{ subject }}</span>
+                                {% endfor %}
+                            {% else %}
+                            <span class="badge badge-neutral">No weak subjects identified</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div>
+                        <span class="stat-card__label">Improving Subjects</span>
+                        <div class="chart-meta">
+                            {% if report.improving_subjects %}
+                                {% for subject in report.improving_subjects %}
+                                <span class="badge badge-verified">{{ subject }}</span>
+                                {% endfor %}
+                            {% else %}
+                            <span class="badge badge-neutral">No improving trends detected yet</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </article>
+        </section>
+    </article>
+</section>
+{% endblock %}

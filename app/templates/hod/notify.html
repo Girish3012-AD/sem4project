@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}Announcements | AcademiaPro{% endblock %}
+
+{% block content %}
+<section class="page-header">
+    <span class="eyebrow">Announcements</span>
+    <h1 class="page-header__title">Broadcast branch updates with a cleaner communication flow.</h1>
+    <p class="page-header__text">Send notices to everyone in the branch or target students and faculty separately, then monitor recent announcements in the same view.</p>
+</section>
+
+<section class="grid-two">
+    <div class="panel">
+        <div class="panel-header">
+            <div>
+                <h2 class="panel-title">New Notification</h2>
+                <p class="panel-subtitle">Create a concise announcement for your selected audience.</p>
+            </div>
+        </div>
+
+        <form method="POST">
+            <div class="form-group">
+                <label for="target_role">Target Audience</label>
+                <select name="target_role" id="target_role" required>
+                    <option value="all">Everyone in Branch</option>
+                    <option value="student">Students Only</option>
+                    <option value="faculty">Faculty Only</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="message">Message</label>
+                <textarea name="message" id="message" rows="5" required placeholder="Write the announcement you want to broadcast"></textarea>
+            </div>
+            <div class="form-actions">
+                <button class="btn btn-primary" type="submit">Broadcast Notification</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="panel">
+        <div class="panel-header">
+            <div>
+                <h2 class="panel-title">Recent Notifications</h2>
+                <p class="panel-subtitle">Latest branch communications with audience targeting and timestamps.</p>
+            </div>
+        </div>
+
+        {% if notifications %}
+        <div class="notice-list">
+            {% for n in notifications %}
+            <article class="notice-item">
+                <span class="notice-item__bar" aria-hidden="true"></span>
+                <div>
+                    <div class="notice-item__meta">
+                        <span class="badge badge-soft">Target: {{ n.target_role }}</span>
+                        <time>{{ n.created_at.strftime('%d %b %Y, %I:%M %p') }}</time>
+                    </div>
+                    <p class="notice-item__message">{{ n.message }}</p>
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <h3>No notifications sent yet</h3>
+            <p>Your branch announcements will appear here once you publish the first one.</p>
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

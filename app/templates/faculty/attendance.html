@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block title %}Mark Attendance | AcademiaPro{% endblock %}
+
+{% block content %}
+<section class="page-header">
+    <span class="eyebrow">Attendance Desk</span>
+    <h1 class="page-header__title">Mark attendance for {{ subject.name }}.</h1>
+    <p class="page-header__text">Select the lecture date, review the student list, and confirm who was present in a single clean workflow.</p>
+    <div class="page-header__meta">
+        <span class="badge badge-soft">{{ subject.name }}</span>
+        <span class="badge badge-info">{{ students|length }} student{{ '' if students|length == 1 else 's' }}</span>
+    </div>
+    <div class="page-header__actions">
+        <a href="{{ url_for('faculty.dashboard') }}" class="btn btn-outline">Back to Dashboard</a>
+    </div>
+</section>
+
+<form method="POST" class="stack">
+    <section class="panel">
+        <div class="panel-header">
+            <div>
+                <h2 class="panel-title">Attendance Setup</h2>
+                <p class="panel-subtitle">Choose the lecture date before submitting the present list.</p>
+            </div>
+        </div>
+        <div class="form-group form-group--compact">
+            <label for="date">Date of Lecture</label>
+            <input type="date" name="date" id="date" value="{{ today }}" required>
+        </div>
+    </section>
+
+    <section class="panel table-panel">
+        <div class="panel-header">
+            <div>
+                <h2 class="panel-title">Student List</h2>
+                <p class="panel-subtitle">Students are marked present by default. Uncheck anyone who was absent.</p>
+            </div>
+        </div>
+
+        {% if students %}
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th class="checkbox-cell">Present</th>
+                        <th>Roll No</th>
+                        <th>PRN</th>
+                        <th>Name</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for student in students %}
+                    <tr>
+                        <td class="checkbox-cell">
+                            <input type="checkbox" name="student_ids" value="{{ student.id }}" checked>
+                        </td>
+                        <td>{{ student.roll_no or 'N/A' }}</td>
+                        <td>{{ student.prn or 'N/A' }}</td>
+                        <td><strong>{{ student.first_name }} {{ student.last_name }}</strong></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="table-toolbar">
+            <div class="form-actions">
+                <button class="btn btn-primary" type="submit">Submit Attendance</button>
+            </div>
+        </div>
+        {% else %}
+        <div class="table-toolbar">
+            <div class="empty-state">
+                <h3>No verified students found</h3>
+                <p>Once students in this branch are verified, you will be able to mark their attendance here.</p>
+            </div>
+        </div>
+        {% endif %}
+    </section>
+</form>
+{% endblock %}

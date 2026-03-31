@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+
+{% block title %}Semester Result Report | AcademiaPro{% endblock %}
+
+{% block content %}
+<section class="page-header">
+    <span class="eyebrow">Semester Result Report</span>
+    <h1 class="page-header__title">Generate a semester-wise result summary.</h1>
+    <p class="page-header__text">Review subject totals, combined marks, percentage, and pass or fail status for the selected semester.</p>
+    <div class="page-header__actions">
+        <a href="{{ url_for('student.reports_home') }}" class="btn btn-outline">Back to Reports</a>
+        <a href="{{ url_for('student.semester_result_report_api', semester=report.semester) }}" class="btn btn-primary">Open JSON API</a>
+    </div>
+</section>
+
+<section class="report-page">
+    <div class="panel report-filter-panel">
+        <form method="GET" class="report-filter-form">
+            <div class="report-filter-grid report-filter-grid--compact">
+                <div class="form-group">
+                    <label for="semester">Semester</label>
+                    <select name="semester" id="semester">
+                        {% if report.available_semesters %}
+                            {% for semester in report.available_semesters %}
+                            <option value="{{ semester }}" {% if semester == report.semester %}selected{% endif %}>Semester {{ semester }}</option>
+                            {% endfor %}
+                        {% else %}
+                            <option value="">No semester data</option>
+                        {% endif %}
+                    </select>
+                </div>
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Refresh Report</button>
+            </div>
+        </form>
+    </div>
+
+    <article class="report-sheet">
+        {% set report_title = 'Semester Result Report' %}
+        {% set report_description = 'Released result summary for the selected semester with subject totals and overall academic status.' %}
+        {% include "student/_report_header.html" %}
+
+        <div class="report-summary-grid">
+            <article class="report-summary-card">
+                <span class="report-summary-card__label">Semester</span>
+                <strong class="report-summary-card__value">{{ report.semester or 'N/A' }}</strong>
+                <p class="report-summary-card__hint">Semester currently selected for the report.</p>
+            </article>
+            <article class="report-summary-card">
+                <span class="report-summary-card__label">Total Marks</span>
+                <strong class="report-summary-card__value">{{ report.total_marks }}</strong>
+                <p class="report-summary-card__hint">Combined marks obtained across released exams.</p>
+            </article>
+            <article class="report-summary-card">
+                <span class="report-summary-card__label">Overall Percentage</span>
+                <strong class="report-summary-card__value">{{ report.overall_percentage }}%</strong>
+                <p class="report-summary-card__hint">Normalized score for the selected semester.</p>
+            </article>
+            <article class="report-summary-card">
+                <span class="report-summary-card__label">Overall Status</span>
+                <strong class="report-summary-card__value">{{ report.overall_status }}</strong>
+                <p class="report-summary-card__hint">Combined status based on all subject-level outcomes.</p>
+            </article>
+        </div>
+
+        <section class="panel table-panel">
+            <div class="panel-header">
+                <div>
+                    <h2 class="panel-title">Subject-wise Result Summary</h2>
+                    <p class="panel-subtitle">Total marks, percentage, and pass or fail status for each subject in the semester.</p>
+                </div>
+            </div>
+
+            {% if report.subjects %}
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Subject</th>
+                            <th>Assessments</th>
+                            <th>Marks Obtained</th>
+                            <th>Max Marks</th>
+                            <th>Percentage</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in report.subjects %}
+                        <tr>
+                            <td><strong>{{ row.subject_name }}</strong></td>
+                            <td>{{ row.exam_count }}</td>
+                            <td>{{ row.marks_obtained }}</td>
+                            <td>{{ row.max_marks }}</td>
+                            <td>{{ row.percentage }}%</td>
+                            <td>
+                                <span class="badge {% if row.status == 'Pass' %}badge-verified{% else %}badge-risk{% endif %}">{{ row.status }}</span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="table-toolbar">
+                <div class="empty-state">
+                    <h3>No released result data available</h3>
+                    <p>Results will appear here once exams are graded and officially released for the selected semester.</p>
+                </div>
+            </div>
+            {% endif %}
+        </section>
+    </article>
+</section>
+{% endblock %}

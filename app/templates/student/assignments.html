@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block title %}Assignments | AcademiaPro{% endblock %}
+
+{% block content %}
+<section class="page-header">
+    <span class="eyebrow">Assignment Submission System</span>
+    <h1 class="page-header__title">Track, submit, and review assignments from one student workspace.</h1>
+    <p class="page-header__text">See upcoming due dates, submission status, grades, and feedback without leaving your dashboard.</p>
+    <div class="page-header__meta">
+        <span class="badge badge-info">{{ assignment_summary.total }} assignment{{ '' if assignment_summary.total == 1 else 's' }}</span>
+        <span class="badge badge-verified">{{ assignment_summary.submitted_count }} submitted</span>
+        <span class="badge badge-pending">{{ assignment_summary.pending_count }} pending</span>
+        <span class="badge badge-risk">{{ assignment_summary.late_count }} late</span>
+    </div>
+    <div class="page-header__actions">
+        <a href="{{ url_for('student.dashboard') }}" class="btn btn-outline">Back to Dashboard</a>
+    </div>
+</section>
+
+<section class="assignment-board">
+    {% if assignment_cards %}
+        {% for card in assignment_cards %}
+        <article class="assignment-card">
+            <div class="assignment-card__top">
+                <div>
+                    <span class="badge badge-soft">{{ card.assignment.subject.name }}</span>
+                    <h2>{{ card.assignment.title }}</h2>
+                </div>
+                <span class="badge {{ card.status_tone }}">{{ card.status }}</span>
+            </div>
+            <p class="assignment-card__description">{{ card.assignment.description }}</p>
+            <div class="assignment-card__meta">
+                <div>
+                    <span class="assignment-card__meta-label">Due Date</span>
+                    <strong>{{ card.assignment.due_date.strftime('%d %b %Y, %I:%M %p') }}</strong>
+                </div>
+                <div>
+                    <span class="assignment-card__meta-label">Subject</span>
+                    <strong>{{ card.assignment.subject.name }}</strong>
+                </div>
+                <div>
+                    <span class="assignment-card__meta-label">Submission</span>
+                    <strong>{{ card.submission.submitted_at.strftime('%d %b %Y, %I:%M %p') if card.submission else 'Not submitted' }}</strong>
+                </div>
+                <div>
+                    <span class="assignment-card__meta-label">Grade</span>
+                    <strong>{{ card.submission.grade if card.submission and card.submission.grade is not none else 'Pending' }}</strong>
+                </div>
+            </div>
+
+            {% if card.submission and card.submission.feedback %}
+            <div class="assignment-card__feedback">
+                <span class="assignment-card__meta-label">Faculty Feedback</span>
+                <p>{{ card.submission.feedback }}</p>
+            </div>
+            {% endif %}
+
+            <div class="assignment-card__actions">
+                <a href="{{ url_for('student.submit_assignment', assignment_id=card.assignment.id) }}" class="btn btn-primary">
+                    {{ 'View Submission' if card.is_submitted else 'Submit Assignment' }}
+                </a>
+                {% if card.submission and card.submission.file_path %}
+                <a href="{{ url_for('static', filename=card.submission.file_path) }}" class="btn btn-outline" target="_blank">Open File</a>
+                {% endif %}
+            </div>
+        </article>
+        {% endfor %}
+    {% else %}
+    <div class="panel">
+        <div class="empty-state">
+            <h3>No assignments available yet</h3>
+            <p>Your faculty-created assignments will appear here as soon as they are published for your branch subjects.</p>
+        </div>
+    </div>
+    {% endif %}
+</section>
+{% endblock %}

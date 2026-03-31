@@ -1,0 +1,190 @@
+{% extends "base.html" %}
+
+{% block title %}Performance Dashboard | AcademiaPro{% endblock %}
+
+{% block content %}
+<section class="page-header">
+    <span class="eyebrow">Student Performance Dashboard</span>
+    <h1 class="page-header__title">Understand your marks with trends, subject insights, and visual breakdowns.</h1>
+    <p class="page-header__text">Track performance over time, compare subjects, and identify where you are strongest or need more attention using released exam data.</p>
+    <div class="page-header__meta">
+        <span class="badge badge-info">{{ performance_summary.overall_average_percentage }}% overall average</span>
+        <span class="badge badge-soft">{{ performance_summary.strong_count }} strong subject{{ '' if performance_summary.strong_count == 1 else 's' }}</span>
+        <span class="badge badge-pending">{{ performance_summary.weak_count }} focus area{{ '' if performance_summary.weak_count == 1 else 's' }}</span>
+    </div>
+    <div class="page-header__actions">
+        <a href="{{ url_for('student.reports_home') }}" class="btn btn-primary">Open Reports</a>
+        <a href="{{ url_for('student.results') }}" class="btn btn-outline">Released Results</a>
+    </div>
+</section>
+
+<section class="stats-grid">
+    <article class="stat-card">
+        <div class="stat-card__top">
+            <div>
+                <span class="stat-card__label">Overall Average</span>
+                <p class="stat-card__value" data-summary="overall-average">{{ performance_summary.overall_average_percentage }}%</p>
+            </div>
+            <span class="stat-card__icon">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M4 19h16M6 15l4-4 3 3 5-7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
+                </svg>
+            </span>
+        </div>
+        <p class="stat-card__hint">Average normalized score across all released exams.</p>
+    </article>
+
+    <article class="stat-card is-success">
+        <div class="stat-card__top">
+            <div>
+                <span class="stat-card__label">Strong Subjects</span>
+                <p class="stat-card__value" data-summary="strong-count">{{ performance_summary.strong_count }}</p>
+            </div>
+            <span class="stat-card__icon">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M5 12l4 4L19 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
+                </svg>
+            </span>
+        </div>
+        <p class="stat-card__hint">Subjects where your average score is currently in the strong range.</p>
+    </article>
+
+    <article class="stat-card {% if performance_summary.weak_count %}is-danger{% else %}is-warning{% endif %}">
+        <div class="stat-card__top">
+            <div>
+                <span class="stat-card__label">Weak Subjects</span>
+                <p class="stat-card__value" data-summary="weak-count">{{ performance_summary.weak_count }}</p>
+            </div>
+            <span class="stat-card__icon">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M12 9v4M12 17h.01" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path>
+                    <path d="M10.3 3.8L1.8 18A2 2 0 0 0 3.5 21h17a2 2 0 0 0 1.7-3L13.7 3.8a2 2 0 0 0-3.4 0z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"></path>
+                </svg>
+            </span>
+        </div>
+        <p class="stat-card__hint">Subjects that need more revision and closer exam preparation.</p>
+    </article>
+
+    <article class="stat-card">
+        <div class="stat-card__top">
+            <div>
+                <span class="stat-card__label">Insight Feed</span>
+                <p class="stat-card__value">{{ performance_insights|length }}</p>
+            </div>
+            <span class="stat-card__icon">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M9.5 9a2.5 2.5 0 1 1 5 0c0 1.5-1 2.1-1.7 2.7-.6.5-.8.9-.8 1.8" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"></path>
+                    <path d="M12 17h.01" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path>
+                    <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.6"></circle>
+                </svg>
+            </span>
+        </div>
+        <p class="stat-card__hint">Short insights generated from your marks history and subject trends.</p>
+    </article>
+</section>
+
+<section id="studentPerformanceDashboard"
+         class="chart-grid"
+         data-subject-url="{{ url_for('student.performance_subject_marks_api') }}"
+         data-history-url="{{ url_for('student.performance_history_api') }}">
+    <article class="panel chart-card chart-card--wide">
+        <div class="panel-header">
+            <div>
+                <h2 class="panel-title">Performance Over Time</h2>
+                <p class="panel-subtitle">Chronological view of released assessments across term tests, finals, and other evaluations.</p>
+            </div>
+        </div>
+        <div class="chart-canvas">
+            <canvas id="performanceTrendChart" aria-label="Line chart showing performance over time"></canvas>
+        </div>
+    </article>
+
+    <article class="panel chart-card">
+        <div class="panel-header">
+            <div>
+                <h2 class="panel-title">Subject-wise Average</h2>
+                <p class="panel-subtitle">Compare average scores across subjects to see where your results are strongest.</p>
+            </div>
+        </div>
+        <div class="chart-canvas">
+            <canvas id="subjectMarksChart" aria-label="Bar chart showing subject-wise average marks"></canvas>
+        </div>
+    </article>
+
+    <article class="panel chart-card">
+        <div class="panel-header">
+            <div>
+                <h2 class="panel-title">Strengths vs Weaknesses</h2>
+                <p class="panel-subtitle">Each subject is color-coded by status, with hover details for average marks and performance category.</p>
+            </div>
+        </div>
+        <div class="chart-canvas">
+            <canvas id="strengthWeaknessChart" aria-label="Pie chart showing strengths versus weaknesses"></canvas>
+        </div>
+        <div class="chart-meta">
+            <span class="badge badge-verified">Strong: <span data-summary="strong-count">{{ performance_summary.strong_count }}</span></span>
+            <span class="badge badge-pending">Weak: <span data-summary="weak-count">{{ performance_summary.weak_count }}</span></span>
+            <span class="badge badge-info">Stable: {{ performance_summary.stable_count }}</span>
+        </div>
+    </article>
+</section>
+
+<section class="grid-two">
+    <article class="panel">
+        <div class="panel-header">
+            <div>
+                <h2 class="panel-title">Performance Insights</h2>
+                <p class="panel-subtitle">Short recommendations generated from your subject averages and score trends.</p>
+            </div>
+        </div>
+        <div class="insight-list">
+            {% for insight in performance_insights %}
+            <article class="insight-item">
+                <span class="insight-item__marker" aria-hidden="true"></span>
+                <p>{{ insight }}</p>
+            </article>
+            {% endfor %}
+        </div>
+    </article>
+
+    <article class="panel">
+        <div class="panel-header">
+            <div>
+                <h2 class="panel-title">Subject Snapshot</h2>
+                <p class="panel-subtitle">Quick read on where you are excelling and where more revision can help.</p>
+            </div>
+        </div>
+        <div class="stack">
+            <div>
+                <span class="stat-card__label">Strong Subjects</span>
+                <div class="chart-meta">
+                    {% if performance_summary.strong_subjects %}
+                        {% for subject in performance_summary.strong_subjects %}
+                        <span class="badge badge-verified">{{ subject }}</span>
+                        {% endfor %}
+                    {% else %}
+                    <span class="badge badge-neutral">No strong subjects yet</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div>
+                <span class="stat-card__label">Focus Areas</span>
+                <div class="chart-meta">
+                    {% if performance_summary.weak_subjects %}
+                        {% for subject in performance_summary.weak_subjects %}
+                        <span class="badge badge-risk">{{ subject }}</span>
+                        {% endfor %}
+                    {% else %}
+                    <span class="badge badge-neutral">No weak subjects right now</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </article>
+</section>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{{ url_for('static', filename='js/student_performance.js') }}" defer></script>
+{% endblock %}

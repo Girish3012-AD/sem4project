@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block title %}Assign Faculty | AcademiaPro{% endblock %}
+
+{% block content %}
+<section class="page-header">
+    <span class="eyebrow">Faculty Assignment</span>
+    <h1 class="page-header__title">Link verified faculty members to branch subjects.</h1>
+    <p class="page-header__text">Create clean teaching assignments so attendance and marks entry are available to the right faculty members.</p>
+</section>
+
+<section class="grid-two">
+    <div class="panel">
+        <div class="panel-header">
+            <div>
+                <h2 class="panel-title">Assign a Subject</h2>
+                <p class="panel-subtitle">Choose a verified faculty member and map them to one subject.</p>
+            </div>
+        </div>
+
+        <form method="POST">
+            <div class="form-group">
+                <label for="faculty_id">Select Faculty</label>
+                <select name="faculty_id" id="faculty_id" required>
+                    <option value="" disabled selected>Select verified faculty</option>
+                    {% for f in faculty %}
+                    <option value="{{ f.id }}">{{ f.first_name }} {{ f.last_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="subject_id">Select Subject</label>
+                <select name="subject_id" id="subject_id" required>
+                    <option value="" disabled selected>Select subject</option>
+                    {% for s in subjects %}
+                    <option value="{{ s.id }}">{{ s.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-actions">
+                <button class="btn btn-primary" type="submit">Assign to Subject</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="panel">
+        <div class="panel-header">
+            <div>
+                <h2 class="panel-title">Assignment Notes</h2>
+                <p class="panel-subtitle">A quick reminder of what this setup unlocks for faculty.</p>
+            </div>
+        </div>
+        <div class="notice-list">
+            <article class="notice-item">
+                <span class="notice-item__bar" aria-hidden="true"></span>
+                <div>
+                    <div class="notice-item__meta">
+                        <span class="badge badge-soft">Attendance</span>
+                    </div>
+                    <p class="notice-item__message">Assigned faculty can mark attendance only for the subjects linked to them.</p>
+                </div>
+            </article>
+            <article class="notice-item">
+                <span class="notice-item__bar" aria-hidden="true"></span>
+                <div>
+                    <div class="notice-item__meta">
+                        <span class="badge badge-soft">Marks Entry</span>
+                    </div>
+                    <p class="notice-item__message">Exam score entry becomes available from the faculty dashboard for assigned subjects with scheduled exams.</p>
+                </div>
+            </article>
+            <article class="notice-item">
+                <span class="notice-item__bar" aria-hidden="true"></span>
+                <div>
+                    <div class="notice-item__meta">
+                        <span class="badge badge-soft">Verified Access</span>
+                    </div>
+                    <p class="notice-item__message">Only verified faculty appear in the assignment list, keeping the workflow secure and clean.</p>
+                </div>
+            </article>
+        </div>
+    </div>
+</section>
+{% endblock %}

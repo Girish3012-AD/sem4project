@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+
+{% block title %}Assignment Submissions | AcademiaPro{% endblock %}
+
+{% block content %}
+<section class="page-header">
+    <span class="eyebrow">Faculty Grading Panel</span>
+    <h1 class="page-header__title">{{ assignment.title }}</h1>
+    <p class="page-header__text">{{ assignment.description }}</p>
+    <div class="page-header__meta">
+        <span class="badge badge-soft">{{ assignment.subject.name }}</span>
+        <span class="badge badge-info">Due {{ assignment.due_date.strftime('%d %b %Y, %I:%M %p') }}</span>
+    </div>
+    <div class="page-header__actions">
+        <a href="{{ url_for('faculty.assignments') }}" class="btn btn-outline">Back to Assignments</a>
+    </div>
+</section>
+
+<section class="stats-grid">
+    <article class="stat-card">
+        <div class="stat-card__top">
+            <div>
+                <span class="stat-card__label">Students</span>
+                <p class="stat-card__value">{{ submission_summary.student_count }}</p>
+            </div>
+            <span class="stat-card__icon">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"></path>
+                    <circle cx="9.5" cy="7" r="3" fill="none" stroke="currentColor" stroke-width="1.6"></circle>
+                </svg>
+            </span>
+        </div>
+        <p class="stat-card__hint">Verified students currently visible for this assignment.</p>
+    </article>
+
+    <article class="stat-card is-success">
+        <div class="stat-card__top">
+            <div>
+                <span class="stat-card__label">Submitted</span>
+                <p class="stat-card__value">{{ submission_summary.submitted_count }}</p>
+            </div>
+            <span class="stat-card__icon">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M5 12l4 4L19 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
+                </svg>
+            </span>
+        </div>
+        <p class="stat-card__hint">Submissions received so far for this assignment.</p>
+    </article>
+
+    <article class="stat-card {% if submission_summary.late_count %}is-danger{% else %}is-warning{% endif %}">
+        <div class="stat-card__top">
+            <div>
+                <span class="stat-card__label">Late</span>
+                <p class="stat-card__value">{{ submission_summary.late_count }}</p>
+            </div>
+            <span class="stat-card__icon">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M12 8v5l3 2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
+                    <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.6"></circle>
+                </svg>
+            </span>
+        </div>
+        <p class="stat-card__hint">Submissions that arrived after the assignment due date.</p>
+    </article>
+
+    <article class="stat-card">
+        <div class="stat-card__top">
+            <div>
+                <span class="stat-card__label">Graded</span>
+                <p class="stat-card__value">{{ submission_summary.graded_count }}</p>
+            </div>
+            <span class="stat-card__icon">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M4 19h16M7 15l3-3 2 2 5-6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
+                </svg>
+            </span>
+        </div>
+        <p class="stat-card__hint">Submission records that already include a grade.</p>
+    </article>
+</section>
+
+<section class="submission-review-list">
+    {% if submission_rows %}
+        {% for row in submission_rows %}
+        <article class="submission-review-card">
+            <div class="submission-review-card__header">
+                <div>
+                    <h2>{{ row.student.first_name }} {{ row.student.last_name }}</h2>
+                    <p>Roll No: {{ row.student.roll_no or 'N/A' }}{% if row.student.prn %} | PRN: {{ row.student.prn }}{% endif %}</p>
+                </div>
+                <span class="badge {{ row.status_tone }}">{{ row.status }}</span>
+            </div>
+
+            {% if row.submission %}
+            <div class="submission-review-card__body">
+                <div class="submission-preview">
+                    <span class="assignment-card__meta-label">Submitted At</span>
+                    <strong>{{ row.submission.submitted_at.strftime('%d %b %Y, %I:%M %p') }}</strong>
+                </div>
+                <div class="submission-preview">
+                    <span class="assignment-card__meta-label">Submission Text</span>
+                    <p>{{ row.submission.submission_text or 'No text provided.' }}</p>
+                </div>
+                <div class="submission-preview">
+                    <span class="assignment-card__meta-label">Attachment</span>
+                    {% if row.submission.file_path %}
+                    <a href="{{ url_for('static', filename=row.submission.file_path) }}" class="file-chip" target="_blank">{{ row.submission.original_file_name or 'Open file' }}</a>
+                    {% else %}
+                    <span class="badge badge-neutral">No file uploaded</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <form method="POST" action="{{ url_for('faculty.grade_submission', submission_id=row.submission.id) }}" class="submission-grade-form">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="grade_{{ row.submission.id }}">Grade</label>
+                        <input type="number" step="0.5" name="grade" id="grade_{{ row.submission.id }}" value="{{ row.submission.grade if row.submission.grade is not none else '' }}" placeholder="Enter grade">
+                    </div>
+                    <div class="form-group">
+                        <label for="feedback_{{ row.submission.id }}">Feedback</label>
+                        <textarea name="feedback" id="feedback_{{ row.submission.id }}" rows="3" placeholder="Add feedback for the student">{{ row.submission.feedback or '' }}</textarea>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Save Grade & Feedback</button>
+                </div>
+            </form>
+            {% else %}
+            <div class="empty-state empty-state--compact">
+                <h3>No submission yet</h3>
+                <p>This student has not submitted the assignment so far.</p>
+            </div>
+            {% endif %}
+        </article>
+        {% endfor %}
+    {% else %}
+    <div class="panel">
+        <div class="empty-state">
+            <h3>No students available</h3>
+            <p>Once verified students are available in this branch, their submissions will appear here for grading.</p>
+        </div>
+    </div>
+    {% endif %}
+</section>
+{% endblock %}

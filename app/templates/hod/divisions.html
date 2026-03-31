@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Divisions | AcademiaPro{% endblock %}
+
+{% block content %}
+<section class="page-header">
+    <span class="eyebrow">Division Management</span>
+    <h1 class="page-header__title">Organize the branch into clean student divisions.</h1>
+    <p class="page-header__text">Divisions help structure timetables, student allocation, and internal academic operations for your branch.</p>
+</section>
+
+<section class="grid-two">
+    <div class="panel">
+        <div class="panel-header">
+            <div>
+                <h2 class="panel-title">Add New Division</h2>
+                <p class="panel-subtitle">Create a division label such as A, B, or C for your branch.</p>
+            </div>
+        </div>
+
+        <form method="POST">
+            <div class="form-group">
+                <label for="name">Division Name</label>
+                <input type="text" name="name" id="name" required placeholder="e.g. A">
+            </div>
+            <div class="form-actions">
+                <button class="btn btn-primary" type="submit">Create Division</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="panel table-panel">
+        <div class="panel-header">
+            <div>
+                <h2 class="panel-title">Existing Divisions</h2>
+                <p class="panel-subtitle">Current division structure inside your branch.</p>
+            </div>
+        </div>
+
+        {% if divisions %}
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for div in divisions %}
+                    <tr>
+                        <td>{{ div.id }}</td>
+                        <td><strong>Div {{ div.name }}</strong></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="table-toolbar">
+            <div class="empty-state">
+                <h3>No divisions created</h3>
+                <p>Add a division to support timetable mapping and cleaner academic segmentation.</p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

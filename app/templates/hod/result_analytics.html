@@ -1,0 +1,255 @@
+{% extends "base.html" %}
+
+{% block title %}Result Analytics | AcademiaPro{% endblock %}
+
+{% block content %}
+<section class="page-header">
+    <span class="eyebrow">Result Analytics Dashboard</span>
+    <h1 class="page-header__title">Track branch-level exam performance with clear visual analytics.</h1>
+    <p class="page-header__text">Review subject averages, pass versus fail outcomes, performance trends, weak subjects, and top performers using existing marks data across your branch.</p>
+    <div class="page-header__meta">
+        {% if current_user.branch_ref %}
+        <span class="badge badge-soft">{{ current_user.branch_ref.name }}</span>
+        {% endif %}
+        <span class="badge badge-info">{{ analytics_summary.pass_rate }}% pass rate</span>
+        <span class="badge badge-pending">{{ analytics_summary.fail_count }} failed assessment{{ '' if analytics_summary.fail_count == 1 else 's' }}</span>
+    </div>
+    <div class="page-header__actions">
+        <a href="{{ url_for('hod.dashboard') }}" class="btn btn-outline">Back to Dashboard</a>
+        <a href="{{ url_for('hod.exams') }}" class="btn btn-primary">Manage Exams</a>
+    </div>
+</section>
+
+<section class="stats-grid">
+    <article class="stat-card">
+        <div class="stat-card__top">
+            <div>
+                <span class="stat-card__label">Overall Pass Rate</span>
+                <p class="stat-card__value" data-analytics-summary="pass-rate">{{ analytics_summary.pass_rate }}%</p>
+            </div>
+            <span class="stat-card__icon">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M5 12l4 4L19 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
+                </svg>
+            </span>
+        </div>
+        <p class="stat-card__hint">Share of mark entries currently meeting the pass threshold.</p>
+    </article>
+
+    <article class="stat-card">
+        <div class="stat-card__top">
+            <div>
+                <span class="stat-card__label">Subject Coverage</span>
+                <p class="stat-card__value" data-analytics-summary="subject-count">{{ analytics_summary.subject_count }}</p>
+            </div>
+            <span class="stat-card__icon">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 0-3 3z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"></path>
+                    <path d="M8 20V7a3 3 0 0 1 3-3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"></path>
+                </svg>
+            </span>
+        </div>
+        <p class="stat-card__hint">Subjects currently contributing marks to the analytics view.</p>
+    </article>
+
+    <article class="stat-card {% if analytics_summary.fail_count %}is-danger{% else %}is-success{% endif %}">
+        <div class="stat-card__top">
+            <div>
+                <span class="stat-card__label">Fail Entries</span>
+                <p class="stat-card__value" data-analytics-summary="fail-count">{{ analytics_summary.fail_count }}</p>
+            </div>
+            <span class="stat-card__icon">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M12 9v4M12 17h.01" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path>
+                    <path d="M10.3 3.8L1.8 18A2 2 0 0 0 3.5 21h17a2 2 0 0 0 1.7-3L13.7 3.8a2 2 0 0 0-3.4 0z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"></path>
+                </svg>
+            </span>
+        </div>
+        <p class="stat-card__hint">Individual assessment entries currently below the pass benchmark.</p>
+    </article>
+
+    <article class="stat-card">
+        <div class="stat-card__top">
+            <div>
+                <span class="stat-card__label">Overall Average</span>
+                <p class="stat-card__value" data-analytics-summary="overall-average">{{ analytics_summary.overall_average_percentage }}%</p>
+            </div>
+            <span class="stat-card__icon">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M4 19h16M7 15V9M12 15V5M17 15v-3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
+                </svg>
+            </span>
+        </div>
+        <p class="stat-card__hint">Average branch score across subjects that have recorded marks.</p>
+    </article>
+</section>
+
+<section id="hodResultAnalyticsDashboard"
+         class="chart-grid"
+         data-overview-url="{{ url_for('hod.result_analytics_overview_api') }}"
+         data-trends-url="{{ url_for('hod.result_analytics_trends_api') }}">
+    <article class="panel chart-card">
+        <div class="panel-header">
+            <div>
+                <h2 class="panel-title">Subject Average</h2>
+                <p class="panel-subtitle">Compare average subject performance to identify the strongest and weakest academic areas.</p>
+            </div>
+        </div>
+        <div class="chart-canvas">
+            <canvas id="hodSubjectAverageChart" aria-label="Bar chart showing subject average marks"></canvas>
+        </div>
+    </article>
+
+    <article class="panel chart-card">
+        <div class="panel-header">
+            <div>
+                <h2 class="panel-title">Pass vs Fail Ratio</h2>
+                <p class="panel-subtitle">See the current distribution of passed and failed mark entries in your branch.</p>
+            </div>
+        </div>
+        <div class="chart-canvas">
+            <canvas id="hodPassFailChart" aria-label="Pie chart showing pass versus fail ratio"></canvas>
+        </div>
+    </article>
+
+    <article class="panel chart-card chart-card--wide">
+        <div class="panel-header">
+            <div>
+                <h2 class="panel-title">Performance Trends</h2>
+                <p class="panel-subtitle">Track assessment averages over time to spot improving, stable, or declining branch performance.</p>
+            </div>
+        </div>
+        <div class="chart-canvas">
+            <canvas id="hodPerformanceTrendChart" aria-label="Line chart showing branch performance trends"></canvas>
+        </div>
+    </article>
+</section>
+
+<section class="grid-two">
+    <article class="panel">
+        <div class="panel-header">
+            <div>
+                <h2 class="panel-title">Analytics Insights</h2>
+                <p class="panel-subtitle">Quick summary of what stands out most in your branch results.</p>
+            </div>
+        </div>
+        <div class="insight-list" id="hodAnalyticsInsights">
+            {% for insight in analytics_insights %}
+            <article class="insight-item">
+                <span class="insight-item__marker" aria-hidden="true"></span>
+                <p>{{ insight }}</p>
+            </article>
+            {% endfor %}
+        </div>
+    </article>
+
+    <article class="panel">
+        <div class="panel-header">
+            <div>
+                <h2 class="panel-title">Weak Subjects</h2>
+                <p class="panel-subtitle">Subjects currently under the performance threshold and needing attention.</p>
+            </div>
+        </div>
+        <div class="chart-meta" id="hodWeakSubjects">
+            {% if weak_subjects %}
+                {% for subject in weak_subjects %}
+                <span class="badge badge-risk">{{ subject.subject_name }} {{ subject.average_percentage }}%</span>
+                {% endfor %}
+            {% else %}
+            <span class="badge badge-neutral">No weak subjects detected</span>
+            {% endif %}
+        </div>
+    </article>
+</section>
+
+<section class="grid-two">
+    <article class="panel table-panel">
+        <div class="panel-header">
+            <div>
+                <h2 class="panel-title">Top Performers</h2>
+                <p class="panel-subtitle">Students with the highest average percentages across recorded marks.</p>
+            </div>
+        </div>
+
+        {% if top_performers %}
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Student</th>
+                        <th>Roll No</th>
+                        <th>Average</th>
+                        <th>Total Marks</th>
+                        <th>Assessments</th>
+                    </tr>
+                </thead>
+                <tbody id="hodTopPerformersTable">
+                    {% for performer in top_performers %}
+                    <tr>
+                        <td><strong>{{ performer.student_name }}</strong></td>
+                        <td>{{ performer.roll_no }}</td>
+                        <td>{{ performer.average_percentage }}%</td>
+                        <td>{{ performer.total_marks }}</td>
+                        <td>{{ performer.assessment_count }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="table-toolbar">
+            <div class="empty-state">
+                <h3>No marks available yet</h3>
+                <p>Top performer insights will appear after marks are entered for branch assessments.</p>
+            </div>
+        </div>
+        {% endif %}
+    </article>
+
+    <article class="panel table-panel">
+        <div class="panel-header">
+            <div>
+                <h2 class="panel-title">Weak Subject Summary</h2>
+                <p class="panel-subtitle">Subject averages below the healthy threshold, sorted by lowest performance first.</p>
+            </div>
+        </div>
+
+        {% if weak_subjects %}
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Subject</th>
+                        <th>Average</th>
+                        <th>Students</th>
+                        <th>Assessments</th>
+                    </tr>
+                </thead>
+                <tbody id="hodWeakSubjectsTable">
+                    {% for subject in weak_subjects %}
+                    <tr>
+                        <td><strong>{{ subject.subject_name }}</strong></td>
+                        <td>{{ subject.average_percentage }}%</td>
+                        <td>{{ subject.student_count }}</td>
+                        <td>{{ subject.assessment_count }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="table-toolbar">
+            <div class="empty-state">
+                <h3>No weak subjects right now</h3>
+                <p>Once branch marks are available, weak subject patterns will appear here automatically.</p>
+            </div>
+        </div>
+        {% endif %}
+    </article>
+</section>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{{ url_for('static', filename='js/hod_result_analytics.js') }}" defer></script>
+{% endblock %}

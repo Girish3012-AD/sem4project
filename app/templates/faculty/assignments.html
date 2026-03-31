@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+
+{% block title %}Assignments | AcademiaPro{% endblock %}
+
+{% block content %}
+<section class="page-header">
+    <span class="eyebrow">Assignment Submission System</span>
+    <h1 class="page-header__title">Create assignments and monitor student submissions in one place.</h1>
+    <p class="page-header__text">Publish assignments by subject, track submission volume, and jump into grading and feedback workflows from the same dashboard.</p>
+    <div class="page-header__meta">
+        <span class="badge badge-info">{{ assignment_summary.total }} assignment{{ '' if assignment_summary.total == 1 else 's' }}</span>
+        <span class="badge badge-soft">{{ assignment_summary.submitted_count }} submission{{ '' if assignment_summary.submitted_count == 1 else 's' }}</span>
+        <span class="badge badge-pending">{{ assignment_summary.late_count }} late submission{{ '' if assignment_summary.late_count == 1 else 's' }}</span>
+    </div>
+    <div class="page-header__actions">
+        <a href="{{ url_for('faculty.dashboard') }}" class="btn btn-outline">Back to Dashboard</a>
+    </div>
+</section>
+
+<section class="grid-two">
+    <article class="panel">
+        <div class="panel-header">
+            <div>
+                <h2 class="panel-title">Create Assignment</h2>
+                <p class="panel-subtitle">Choose one of your subjects, define the brief, and set the due date for students.</p>
+            </div>
+        </div>
+
+        <form method="POST">
+            <div class="form-group">
+                <label for="subject_id">Subject</label>
+                <select name="subject_id" id="subject_id" required>
+                    <option value="" disabled selected>Select subject</option>
+                    {% for subject in subjects %}
+                    <option value="{{ subject.id }}">{{ subject.name }} (Sem {{ subject.semester }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="title">Assignment Title</label>
+                <input type="text" name="title" id="title" required placeholder="e.g. DBMS normalization worksheet">
+            </div>
+            <div class="form-group">
+                <label for="description">Description</label>
+                <textarea name="description" id="description" rows="5" required placeholder="Describe the task, expected format, and submission expectations"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="due_date">Due Date</label>
+                <input type="datetime-local" name="due_date" id="due_date" required>
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Create Assignment</button>
+            </div>
+        </form>
+    </article>
+
+    <article class="panel">
+        <div class="panel-header">
+            <div>
+                <h2 class="panel-title">Workflow Notes</h2>
+                <p class="panel-subtitle">Keep assignment distribution and grading clean and predictable for students.</p>
+            </div>
+        </div>
+
+        <div class="insight-list">
+            <article class="insight-item">
+                <span class="insight-item__marker" aria-hidden="true"></span>
+                <p>Assignments are linked to a subject, so students in the same branch can see and submit against it.</p>
+            </article>
+            <article class="insight-item">
+                <span class="insight-item__marker" aria-hidden="true"></span>
+                <p>Students can submit either text, a file, or both. Submission status updates automatically to submitted, pending, or late.</p>
+            </article>
+            <article class="insight-item">
+                <span class="insight-item__marker" aria-hidden="true"></span>
+                <p>Open the submissions panel on any assignment card to grade work and add feedback without leaving the faculty area.</p>
+            </article>
+        </div>
+    </article>
+</section>
+
+<section class="assignment-board">
+    {% if assignment_cards %}
+        {% for card in assignment_cards %}
+        <article class="assignment-card">
+            <div class="assignment-card__top">
+                <div>
+                    <span class="badge badge-soft">{{ card.assignment.subject.name }}</span>
+                    <h2>{{ card.assignment.title }}</h2>
+                </div>
+                <span class="badge badge-info">{{ card.assignment.due_date.strftime('%d %b %Y, %I:%M %p') }}</span>
+            </div>
+            <p class="assignment-card__description">{{ card.assignment.description }}</p>
+            <div class="assignment-card__meta">
+                <div>
+                    <span class="assignment-card__meta-label">Created</span>
+                    <strong>{{ card.assignment.created_at.strftime('%d %b %Y') }}</strong>
+                </div>
+                <div>
+                    <span class="assignment-card__meta-label">Submissions</span>
+                    <strong>{{ card.submitted_count }}</strong>
+                </div>
+                <div>
+                    <span class="assignment-card__meta-label">Graded</span>
+                    <strong>{{ card.graded_count }}</strong>
+                </div>
+                <div>
+                    <span class="assignment-card__meta-label">Late</span>
+                    <strong>{{ card.late_count }}</strong>
+                </div>
+            </div>
+            <div class="assignment-card__actions">
+                <a href="{{ url_for('faculty.assignment_submissions', assignment_id=card.assignment.id) }}" class="btn btn-primary">View Submissions</a>
+            </div>
+        </article>
+        {% endfor %}
+    {% else %}
+    <div class="panel">
+        <div class="empty-state">
+            <h3>No assignments created yet</h3>
+            <p>Create your first assignment to start collecting student submissions and grading feedback from this page.</p>
+        </div>
+    </div>
+    {% endif %}
+</section>
+{% endblock %}

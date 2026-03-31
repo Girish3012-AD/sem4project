@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+
+{% block title %}Leave Requests | AcademiaPro{% endblock %}
+
+{% block content %}
+<section class="page-header">
+    <span class="eyebrow">Local Guardian Approval</span>
+    <h1 class="page-header__title">Review student leave requests assigned to you as a local guardian.</h1>
+    <p class="page-header__text">See pending leave applications, check the requested dates and reason, and approve or reject them with a single action.</p>
+    <div class="page-header__meta">
+        <span class="badge badge-info">{{ leave_summary.total }} request{{ '' if leave_summary.total == 1 else 's' }}</span>
+        <span class="badge badge-pending">{{ leave_summary.pending_count }} pending</span>
+        <span class="badge badge-verified">{{ leave_summary.approved_count }} approved</span>
+        <span class="badge badge-risk">{{ leave_summary.rejected_count }} rejected</span>
+    </div>
+    <div class="page-header__actions">
+        <a href="{{ url_for('faculty.dashboard') }}" class="btn btn-outline">Back to Dashboard</a>
+    </div>
+</section>
+
+<section class="stats-grid">
+    <article class="stat-card">
+        <div class="stat-card__top">
+            <div>
+                <span class="stat-card__label">Total Requests</span>
+                <p class="stat-card__value">{{ leave_summary.total }}</p>
+            </div>
+            <span class="stat-card__icon">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M6 4h12a2 2 0 0 1 2 2v12l-4-2-4 2-4-2-4 2V6a2 2 0 0 1 2-2z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"></path>
+                </svg>
+            </span>
+        </div>
+        <p class="stat-card__hint">Leave requests routed to you through the local guardian mapping.</p>
+    </article>
+
+    <article class="stat-card is-warning">
+        <div class="stat-card__top">
+            <div>
+                <span class="stat-card__label">Pending Review</span>
+                <p class="stat-card__value">{{ leave_summary.pending_count }}</p>
+            </div>
+            <span class="stat-card__icon">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M12 8v5l3 2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
+                    <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.6"></circle>
+                </svg>
+            </span>
+        </div>
+        <p class="stat-card__hint">Requests still waiting for your decision.</p>
+    </article>
+
+    <article class="stat-card is-success">
+        <div class="stat-card__top">
+            <div>
+                <span class="stat-card__label">Approved</span>
+                <p class="stat-card__value">{{ leave_summary.approved_count }}</p>
+            </div>
+            <span class="stat-card__icon">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M5 12l4 4L19 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
+                </svg>
+            </span>
+        </div>
+        <p class="stat-card__hint">Requests approved by their assigned guardian.</p>
+    </article>
+
+    <article class="stat-card is-danger">
+        <div class="stat-card__top">
+            <div>
+                <span class="stat-card__label">Rejected</span>
+                <p class="stat-card__value">{{ leave_summary.rejected_count }}</p>
+            </div>
+            <span class="stat-card__icon">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path>
+                </svg>
+            </span>
+        </div>
+        <p class="stat-card__hint">Requests that were declined after review.</p>
+    </article>
+</section>
+
+<section class="leave-board">
+    {% if leave_cards %}
+        {% for card in leave_cards %}
+        <article class="leave-card">
+            <div class="leave-card__header">
+                <div>
+                    <span class="badge badge-soft">Student Leave</span>
+                    <h2>{{ card.student_name }}</h2>
+                    <p>
+                        Roll No: {{ card.request.student.roll_no or 'N/A' }}
+                        {% if card.request.student.prn %}
+                        | PRN: {{ card.request.student.prn }}
+                        {% endif %}
+                    </p>
+                </div>
+                <span class="badge {{ card.status_tone }}">{{ card.request.status }}</span>
+            </div>
+
+            <div class="leave-card__meta">
+                <div class="leave-card__meta-item">
+                    <span class="assignment-card__meta-label">Leave Dates</span>
+                    <strong>{{ card.request.start_date.strftime('%d %b %Y') }} to {{ card.request.end_date.strftime('%d %b %Y') }}</strong>
+                </div>
+                <div class="leave-card__meta-item">
+                    <span class="assignment-card__meta-label">Duration</span>
+                    <strong>{{ card.day_count }} day{{ '' if card.day_count == 1 else 's' }}</strong>
+                </div>
+                <div class="leave-card__meta-item">
+                    <span class="assignment-card__meta-label">Submitted</span>
+                    <strong>{{ card.request.created_at.strftime('%d %b %Y, %I:%M %p') }}</strong>
+                </div>
+                <div class="leave-card__meta-item">
+                    <span class="assignment-card__meta-label">Reviewed At</span>
+                    <strong>{{ card.request.reviewed_at.strftime('%d %b %Y, %I:%M %p') if card.request.reviewed_at else 'Pending' }}</strong>
+                </div>
+            </div>
+
+            <div class="leave-card__reason">
+                <span class="assignment-card__meta-label">Reason</span>
+                <p>{{ card.request.reason }}</p>
+            </div>
+
+            {% if card.request.status == 'Pending' %}
+            <div class="leave-card__actions">
+                <form method="POST" action="{{ url_for('faculty.review_leave_request', leave_request_id=card.request.id) }}" class="inline-form">
+                    <input type="hidden" name="status" value="Approved">
+                    <button type="submit" class="btn btn-success">Approve</button>
+                </form>
+                <form method="POST" action="{{ url_for('faculty.review_leave_request', leave_request_id=card.request.id) }}" class="inline-form">
+                    <input type="hidden" name="status" value="Rejected">
+                    <button type="submit" class="btn btn-danger">Reject</button>
+                </form>
+            </div>
+            {% else %}
+            <div class="assignment-card__feedback">
+                <span class="assignment-card__meta-label">Review Summary</span>
+                <p>
+                    {{ card.request.status }} by
+                    {{ card.request.reviewer.first_name ~ ' ' ~ card.request.reviewer.last_name if card.request.reviewer else 'local guardian' }}.
+                </p>
+            </div>
+            {% endif %}
+        </article>
+        {% endfor %}
+    {% else %}
+    <div class="panel">
+        <div class="empty-state">
+            <h3>No leave requests assigned yet</h3>
+            <p>Requests from students linked to you as a local guardian will appear here for review.</p>
+        </div>
+    </div>
+    {% endif %}
+</section>
+{% endblock %}

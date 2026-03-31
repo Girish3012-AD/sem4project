@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+
+{% block title %}Faculty Dashboard | AcademiaPro{% endblock %}
+
+{% block content %}
+<section class="page-header">
+    <span class="eyebrow">Faculty Dashboard</span>
+    <h1 class="page-header__title">Manage classes, attendance, and grading with less friction.</h1>
+    <p class="page-header__text">Your assigned subjects are organized below with direct actions for attendance and exam score entry.</p>
+    <div class="page-header__meta">
+        {% if current_user.branch_ref %}
+        <span class="badge badge-soft">{{ current_user.branch_ref.name }}</span>
+        {% endif %}
+        <span class="badge badge-info">{{ subjects|length }} assigned subject{{ '' if subjects|length == 1 else 's' }}</span>
+    </div>
+    <div class="page-header__actions">
+        <a href="{{ url_for('faculty.assignments') }}" class="btn btn-primary">Manage Assignments</a>
+        <a href="{{ url_for('faculty.calendar') }}" class="btn btn-outline">Academic Calendar</a>
+        <a href="{{ url_for('faculty.leave_requests') }}" class="btn btn-outline">Review Leaves</a>
+    </div>
+</section>
+
+<section class="stats-grid">
+    <article class="stat-card">
+        <div class="stat-card__top">
+            <div>
+                <span class="stat-card__label">Assigned Subjects</span>
+                <p class="stat-card__value">{{ subjects|length }}</p>
+            </div>
+            <span class="stat-card__icon">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 0-3 3z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"></path>
+                    <path d="M8 20V7a3 3 0 0 1 3-3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"></path>
+                </svg>
+            </span>
+        </div>
+        <p class="stat-card__hint">Subjects currently linked to your faculty account and ready for action.</p>
+    </article>
+
+    <article class="stat-card">
+        <div class="stat-card__top">
+            <div>
+                <span class="stat-card__label">Scheduled Exams</span>
+                <p class="stat-card__value">{{ total_exams }}</p>
+            </div>
+            <span class="stat-card__icon">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <rect x="4" y="5" width="16" height="15" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"></rect>
+                    <path d="M8 3v4M16 3v4M4 10h16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"></path>
+                </svg>
+            </span>
+        </div>
+        <p class="stat-card__hint">Exam workflows available through your assigned subjects.</p>
+    </article>
+
+    <article class="stat-card is-success">
+        <div class="stat-card__top">
+            <div>
+                <span class="stat-card__label">Teaching Status</span>
+                <p class="stat-card__value">{{ 'Active' if subjects else 'Waiting' }}</p>
+            </div>
+            <span class="stat-card__icon">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M5 12l4 4L19 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
+                </svg>
+            </span>
+        </div>
+        <p class="stat-card__hint">Everything you need to run daily academic tasks from a single dashboard.</p>
+    </article>
+
+    <article class="stat-card">
+        <div class="stat-card__top">
+            <div>
+                <span class="stat-card__label">Assignments</span>
+                <p class="stat-card__value">{{ total_assignments }}</p>
+            </div>
+            <span class="stat-card__icon">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M8 6h12M8 12h12M8 18h8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path>
+                    <path d="M3.5 6h.01M3.5 12h.01M3.5 18h.01" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"></path>
+                </svg>
+            </span>
+        </div>
+        <p class="stat-card__hint">Assignments you have created for your currently assigned subjects.</p>
+    </article>
+
+    <article class="stat-card {% if pending_leave_requests %}is-warning{% endif %}">
+        <div class="stat-card__top">
+            <div>
+                <span class="stat-card__label">Pending Leaves</span>
+                <p class="stat-card__value">{{ pending_leave_requests }}</p>
+            </div>
+            <span class="stat-card__icon">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M6 4h12a2 2 0 0 1 2 2v12l-4-2-4 2-4-2-4 2V6a2 2 0 0 1 2-2z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"></path>
+                    <path d="M8 9h8M8 12h5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"></path>
+                </svg>
+            </span>
+        </div>
+        <p class="stat-card__hint">Local guardian leave requests currently waiting for your review.</p>
+    </article>
+</section>
+
+<section class="panel table-panel">
+    <div class="panel-header">
+        <div>
+            <h2 class="panel-title">My Subjects</h2>
+            <p class="panel-subtitle">Open attendance and grading actions directly from each subject row.</p>
+        </div>
+    </div>
+
+    {% if subjects %}
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Subject Name</th>
+                    <th>Semester</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for sub in subjects %}
+                <tr>
+                    <td><strong>{{ sub.name }}</strong></td>
+                    <td>Sem {{ sub.semester }}</td>
+                    <td>
+                        <div class="inline-actions">
+                            <a href="{{ url_for('faculty.mark_attendance', subject_id=sub.id) }}" class="btn btn-sm btn-outline">Attendance</a>
+                            {% if sub.exams %}
+                            <select class="select-inline" onchange="if(this.value) window.location.href=this.value;">
+                                <option value="" disabled selected>Mark Exams</option>
+                                {% for exam in sub.exams %}
+                                <option value="{{ url_for('faculty.enter_marks', exam_id=exam.id) }}">{{ exam.name }}</option>
+                                {% endfor %}
+                            </select>
+                            {% else %}
+                            <span class="badge badge-neutral">No Exams Yet</span>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="table-toolbar">
+        <div class="empty-state">
+            <h3>No subjects assigned</h3>
+            <p>Your HOD can assign subjects to unlock attendance and grading workflows here.</p>
+        </div>
+    </div>
+    {% endif %}
+</section>
+{% endblock %}

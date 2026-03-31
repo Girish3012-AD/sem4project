@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+
+{% block title %}Monthly Attendance Report | AcademiaPro{% endblock %}
+
+{% block content %}
+<section class="page-header">
+    <span class="eyebrow">Monthly Attendance Report</span>
+    <h1 class="page-header__title">Generate a monthly subject-wise attendance sheet.</h1>
+    <p class="page-header__text">Choose a month and year to create a printable attendance report with totals, percentages, and overall risk indicators.</p>
+    <div class="page-header__actions">
+        <a href="{{ url_for('student.reports_home') }}" class="btn btn-outline">Back to Reports</a>
+        <a href="{{ url_for('student.monthly_attendance_report_api', month=report.month, year=report.year) }}" class="btn btn-primary">Open JSON API</a>
+    </div>
+</section>
+
+<section class="report-page">
+    <div class="panel report-filter-panel">
+        <form method="GET" class="report-filter-form">
+            <div class="report-filter-grid">
+                <div class="form-group">
+                    <label for="month">Month</label>
+                    <select name="month" id="month">
+                        {% for option in month_options %}
+                        <option value="{{ option.value }}" {% if option.value == report.month %}selected{% endif %}>{{ option.label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="year">Year</label>
+                    <input type="number" name="year" id="year" value="{{ report.year }}" min="2000" max="2100">
+                </div>
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Refresh Report</button>
+            </div>
+        </form>
+    </div>
+
+    <article class="report-sheet">
+        {% set report_title = 'Monthly Attendance Report' %}
+        {% set report_description = 'Attendance summary for ' ~ report.month_label ~ ' with subject-wise lecture totals and overall percentage.' %}
+        {% include "student/_report_header.html" %}
+
+        <div class="report-summary-grid">
+            <article class="report-summary-card">
+                <span class="report-summary-card__label">Report Month</span>
+                <strong class="report-summary-card__value">{{ report.month_label }}</strong>
+                <p class="report-summary-card__hint">Currently selected attendance window.</p>
+            </article>
+            <article class="report-summary-card">
+                <span class="report-summary-card__label">Total Lectures</span>
+                <strong class="report-summary-card__value">{{ report.total_lectures }}</strong>
+                <p class="report-summary-card__hint">Recorded lecture sessions in the selected month.</p>
+            </article>
+            <article class="report-summary-card">
+                <span class="report-summary-card__label">Attended</span>
+                <strong class="report-summary-card__value">{{ report.attended_lectures }}</strong>
+                <p class="report-summary-card__hint">Sessions marked present for your profile.</p>
+            </article>
+            <article class="report-summary-card">
+                <span class="report-summary-card__label">Overall Percentage</span>
+                <strong class="report-summary-card__value">{{ report.overall_percentage }}%</strong>
+                <p class="report-summary-card__hint">Attendance average across all recorded subjects.</p>
+            </article>
+        </div>
+
+        <section class="panel table-panel">
+            <div class="panel-header">
+                <div>
+                    <h2 class="panel-title">Subject-wise Attendance</h2>
+                    <p class="panel-subtitle">Lecture totals and attendance percentage for each subject in the selected month.</p>
+                </div>
+            </div>
+
+            {% if report.subjects %}
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Subject</th>
+                            <th>Total Lectures</th>
+                            <th>Attended</th>
+                            <th>Percentage</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in report.subjects %}
+                        <tr>
+                            <td><strong>{{ row.subject_name }}</strong></td>
+                            <td>{{ row.total_lectures }}</td>
+                            <td>{{ row.attended_lectures }}</td>
+                            <td>{{ row.percentage }}%</td>
+                            <td>
+                                <span class="badge {% if row.status == 'On Track' %}badge-verified{% else %}badge-risk{% endif %}">{{ row.status }}</span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="table-toolbar">
+                <div class="empty-state">
+                    <h3>No attendance data for this month</h3>
+                    <p>Try another month or wait for lecture records to be added to generate this report.</p>
+                </div>
+            </div>
+            {% endif %}
+        </section>
+    </article>
+</section>
+{% endblock %}

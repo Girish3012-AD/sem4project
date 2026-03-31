@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}Timetable | AcademiaPro{% endblock %}
+
+{% block content %}
+<section class="page-header">
+    <span class="eyebrow">Weekly Timetable</span>
+    <h1 class="page-header__title">Plan the week with a cleaner class schedule.</h1>
+    <p class="page-header__text">See your assigned timetable day by day, including time slots and subjects for your division.</p>
+    <div class="page-header__actions">
+        <a href="{{ url_for('student.dashboard') }}" class="btn btn-outline">Back to Dashboard</a>
+        <a href="{{ url_for('student.attendance') }}" class="btn btn-primary">Attendance Summary</a>
+    </div>
+</section>
+
+{% if timetable %}
+<section class="schedule-grid">
+    {% for day, timeslots in timetable.items() %}
+    <article class="schedule-day">
+        <h3>{{ day }}</h3>
+        <div class="schedule-list">
+            {% for slot in timeslots %}
+            <div class="schedule-slot">
+                <div class="schedule-time">{{ slot.start_time.strftime('%H:%M') }} - {{ slot.end_time.strftime('%H:%M') }}</div>
+                <div>
+                    <strong>{{ slot.subject.name }}</strong>
+                    <span>{{ current_user.branch_ref.name if current_user.branch_ref else 'Academic session' }}</span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </article>
+    {% endfor %}
+</section>
+{% else %}
+<section class="panel">
+    <div class="empty-state">
+        <h3>No timetable defined yet</h3>
+        <p>Your weekly class schedule will appear here once your division timetable has been configured.</p>
+    </div>
+</section>
+{% endif %}
+{% endblock %}

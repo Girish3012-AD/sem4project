@@ -1,0 +1,297 @@
+{% macro render_logout_button(form_class='', button_class='') -%}
+<form method="POST" action="{{ url_for('auth.logout') }}" class="logout-form {{ form_class }}">
+    <button type="submit" class="btn btn-logout {{ button_class|trim }}">
+        <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M16 17l5-5-5-5M21 12H9" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
+        </svg>
+        <span class="btn__label">Logout</span>
+    </button>
+</form>
+{%- endmacro %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}AcademiaPro{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="{{ url_for('static', filename='js/app.js') }}" defer></script>
+</head>
+<body class="{% block body_class %}{% if current_user.is_authenticated %}app-body{% else %}auth-body{% endif %}{% endblock %}">
+    {% if current_user.is_authenticated %}
+    <div class="app-shell">
+        <aside class="sidebar" id="appSidebar">
+            <div class="sidebar__body">
+                <div class="sidebar__header">
+                    <a href="{{ url_for(shell_nav_items[0].endpoint) if shell_nav_items else url_for('auth.login') }}" class="brand">
+                        <span class="brand__mark">
+                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
+                            </svg>
+                        </span>
+                        <span class="brand__text">
+                            <strong>AcademiaPro</strong>
+                            <small>Academic Workspace</small>
+                        </span>
+                    </a>
+                    <button type="button" class="icon-button icon-button--ghost hide-mobile" data-sidebar-toggle aria-label="Collapse sidebar">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="sidebar__workspace">
+                    <span class="sidebar__workspace-label">{{ current_user.role|capitalize }} Workspace</span>
+                    <strong>{{ shell_branch_name }}</strong>
+                    <p>Focused tools for attendance, academics, and announcements.</p>
+                </div>
+
+                <nav class="sidebar__nav" aria-label="Primary navigation">
+                    {% for item in shell_nav_items %}
+                        {% set is_active = request.endpoint == item.endpoint or (item.endpoint == 'faculty.dashboard' and request.blueprint == 'faculty') %}
+                        <a href="{{ url_for(item.endpoint) }}" class="sidebar__link{% if is_active %} is-active{% endif %}">
+                            <span class="sidebar__icon" aria-hidden="true">
+                                {% if item.icon == 'dashboard' %}
+                                <svg viewBox="0 0 24 24">
+                                    <path d="M4 13h7V4H4zm9 7h7v-9h-7zM4 20h7v-5H4zm9-9h7V4h-7z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"></path>
+                                </svg>
+                                {% elif item.icon == 'branches' %}
+                                <svg viewBox="0 0 24 24">
+                                    <path d="M6 3h12v6H6zm-2 10h7v8H4zm9 0h7v8h-7z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"></path>
+                                </svg>
+                                {% elif item.icon == 'subjects' %}
+                                <svg viewBox="0 0 24 24">
+                                    <path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 0-3 3z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"></path>
+                                    <path d="M8 20V7a3 3 0 0 1 3-3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"></path>
+                                </svg>
+                                {% elif item.icon == 'analytics' %}
+                                <svg viewBox="0 0 24 24">
+                                    <path d="M4 19h16M7 15V9M12 15V5M17 15v-3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
+                                </svg>
+                                {% elif item.icon == 'calendar' %}
+                                <svg viewBox="0 0 24 24">
+                                    <rect x="4" y="5" width="16" height="15" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"></rect>
+                                    <path d="M8 3v4M16 3v4M4 10h16M8 14h3M8 17h8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"></path>
+                                </svg>
+                                {% elif item.icon == 'divisions' %}
+                                <svg viewBox="0 0 24 24">
+                                    <path d="M4 6h16M4 12h16M4 18h10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path>
+                                </svg>
+                                {% elif item.icon == 'exams' %}
+                                <svg viewBox="0 0 24 24">
+                                    <rect x="4" y="5" width="16" height="15" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"></rect>
+                                    <path d="M8 3v4M16 3v4M4 10h16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"></path>
+                                </svg>
+                                {% elif item.icon == 'faculty' %}
+                                <svg viewBox="0 0 24 24">
+                                    <path d="M16 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"></path>
+                                    <circle cx="9.5" cy="7" r="3" fill="none" stroke="currentColor" stroke-width="1.6"></circle>
+                                    <path d="M20 8v6M17 11h6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"></path>
+                                </svg>
+                                {% elif item.icon == 'notifications' %}
+                                <svg viewBox="0 0 24 24">
+                                    <path d="M15 17H5l1.4-1.4A2 2 0 0 0 7 14.2V10a5 5 0 1 1 10 0v4.2a2 2 0 0 0 .6 1.4L19 17h-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path>
+                                    <path d="M10 20a2 2 0 0 0 4 0" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"></path>
+                                </svg>
+                                {% elif item.icon == 'attendance' %}
+                                <svg viewBox="0 0 24 24">
+                                    <path d="M9 11l3 3L22 4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
+                                    <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
+                                </svg>
+                                {% elif item.icon == 'results' %}
+                                <svg viewBox="0 0 24 24">
+                                    <path d="M4 19h16M7 15l3-3 2 2 5-6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
+                                </svg>
+                                {% elif item.icon == 'assignments' %}
+                                <svg viewBox="0 0 24 24">
+                                    <path d="M8 6h12M8 12h12M8 18h8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path>
+                                    <path d="M3.5 6h.01M3.5 12h.01M3.5 18h.01" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"></path>
+                                </svg>
+                                {% elif item.icon == 'leave' %}
+                                <svg viewBox="0 0 24 24">
+                                    <path d="M6 4h12a2 2 0 0 1 2 2v12l-4-2-4 2-4-2-4 2V6a2 2 0 0 1 2-2z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"></path>
+                                    <path d="M8 9h8M8 12h5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"></path>
+                                </svg>
+                                {% elif item.icon == 'performance' %}
+                                <svg viewBox="0 0 24 24">
+                                    <path d="M4 19h16M6 15l4-4 3 3 5-7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
+                                </svg>
+                                {% elif item.icon == 'timetable' %}
+                                <svg viewBox="0 0 24 24">
+                                    <circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="1.6"></circle>
+                                    <path d="M12 8v5l3 2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
+                                </svg>
+                                {% elif item.icon == 'reports' %}
+                                <svg viewBox="0 0 24 24">
+                                    <path d="M7 3h8l4 4v14H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"></path>
+                                    <path d="M15 3v5h5M9 13h6M9 17h6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"></path>
+                                </svg>
+                                {% endif %}
+                            </span>
+                            <span class="sidebar__label">{{ item.label }}</span>
+                        </a>
+                    {% endfor %}
+                </nav>
+            </div>
+
+            <div class="sidebar__footer">
+                <div class="sidebar__profile-card">
+                    <span class="avatar avatar--small">{{ current_user.first_name[:1] }}{{ current_user.last_name[:1] }}</span>
+                    <div>
+                        <strong>{{ current_user.first_name }} {{ current_user.last_name }}</strong>
+                        <p>{{ current_user.email }}</p>
+                    </div>
+                </div>
+                {{ render_logout_button('logout-form--sidebar', 'btn-block') }}
+            </div>
+        </aside>
+
+        <button type="button" class="app-shell__overlay js-sidebar-overlay" aria-label="Close navigation"></button>
+
+        <div class="app-main">
+            <header class="topbar">
+                <div class="topbar__intro">
+                    <button type="button" class="icon-button" data-sidebar-toggle aria-label="Toggle sidebar">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M4 7h16M4 12h16M4 17h16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path>
+                        </svg>
+                    </button>
+                    <div>
+                        <span class="eyebrow">Professional dashboard</span>
+                        <strong>{{ shell_branch_name }}</strong>
+                    </div>
+                </div>
+
+                <div class="topbar__actions">
+                    <div class="notification js-notification">
+                        <button type="button" class="icon-button notification__toggle js-notification-toggle" aria-haspopup="true" aria-expanded="false" aria-label="View notifications">
+                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M15 17H5l1.4-1.4A2 2 0 0 0 7 14.2V10a5 5 0 1 1 10 0v4.2a2 2 0 0 0 .6 1.4L19 17h-4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"></path>
+                                <path d="M10 20a2 2 0 0 0 4 0" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"></path>
+                            </svg>
+                            {% if shell_alert_count %}
+                            <span class="notification__badge">{{ shell_alert_count }}</span>
+                            {% endif %}
+                        </button>
+                        <div class="notification__menu" role="dialog" aria-label="Notifications">
+                            <div class="notification__header">
+                                <div>
+                                    <strong>Notifications</strong>
+                                    <p>Latest alerts in your workspace.</p>
+                                </div>
+                                {% if shell_alert_count %}
+                                <span class="badge badge-info">{{ shell_alert_count }} new</span>
+                                {% endif %}
+                            </div>
+                            <div class="notification__list">
+                                {% if shell_alerts %}
+                                    {% for alert in shell_alerts %}
+                                    <article class="notification__item">
+                                        <span class="notification__pulse" aria-hidden="true"></span>
+                                        <div>
+                                            <div class="notification__meta">
+                                                <span class="badge badge-soft">{{ alert.tag }}</span>
+                                                <time>{{ alert.meta }}</time>
+                                            </div>
+                                            <p>{{ alert.message }}</p>
+                                        </div>
+                                    </article>
+                                    {% endfor %}
+                                {% else %}
+                                <div class="empty-state empty-state--compact">
+                                    <h3>No new alerts</h3>
+                                    <p>Everything looks up to date right now.</p>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    {{ render_logout_button('logout-form--topbar', 'btn-sm') }}
+
+                    <div class="topbar__profile">
+                        <span class="avatar">{{ current_user.first_name[:1] }}{{ current_user.last_name[:1] }}</span>
+                        <div>
+                            <strong>{{ current_user.first_name }} {{ current_user.last_name }}</strong>
+                            <p>{{ current_user.role|capitalize }}</p>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <main class="content-area">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                    <div class="flash-stack">
+                        {% for category, message in messages %}
+                        <div class="flash flash-{{ category }}">{{ message }}</div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                {% endwith %}
+
+                {% block content %}{% endblock %}
+            </main>
+        </div>
+    </div>
+    {% else %}
+    <div class="auth-shell">
+        <aside class="auth-panel">
+            <div class="auth-panel__content">
+                <a href="{{ url_for('auth.login') }}" class="brand brand--light">
+                    <span class="brand__mark">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
+                        </svg>
+                    </span>
+                    <span class="brand__text">
+                        <strong>AcademiaPro</strong>
+                        <small>Integrated academic operations</small>
+                    </span>
+                </a>
+
+                <div class="auth-panel__copy">
+                    <span class="eyebrow eyebrow--light">Modern campus workflow</span>
+                    <h1>One polished workspace for students, faculty, HODs, and admins.</h1>
+                    <p>Track attendance, publish results, manage subjects, and share updates from a clean dashboard built for everyday academic work.</p>
+                </div>
+
+                <div class="auth-feature-list">
+                    <div class="auth-feature">
+                        <strong>Real-time academic visibility</strong>
+                        <p>Surface attendance health, exam readiness, and important announcements at a glance.</p>
+                    </div>
+                    <div class="auth-feature">
+                        <strong>Role-based dashboards</strong>
+                        <p>Give every user a focused layout with the tools and information they actually need.</p>
+                    </div>
+                    <div class="auth-feature">
+                        <strong>Clean responsive experience</strong>
+                        <p>Stay productive across desktop, tablet, and mobile without losing structure.</p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="auth-stage">
+            <div class="auth-stage__inner">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                    <div class="flash-stack">
+                        {% for category, message in messages %}
+                        <div class="flash flash-{{ category }}">{{ message }}</div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                {% endwith %}
+
+                {% block auth_content %}{% endblock %}
+            </div>
+        </main>
+    </div>
+    {% endif %}
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>
