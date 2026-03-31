@@ -61,5 +61,8 @@ Open a browser and visit `http://127.0.0.1:5000` to access the web app.
 - `app.run(debug=True)` is used for development only. Disable debug mode before deploying to production.
 - Add sensitive credentials and local settings to `.env` and do not commit them.
 
+## Project Timeline
+Detailed phase plan and timeline are available in `PROJECT_PLAN.md`.
+
 ## License
 This project is provided as-is. Update this section with your preferred license if needed.
