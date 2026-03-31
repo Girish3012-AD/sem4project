@@ -1,4 +1,4 @@
-# GitHub Logbook
+# Project Logbook 
 
 This logbook tracks the main repository changes and publication actions.
 
