@@ -1,4 +1,4 @@
-# Student Academic Management System
+# Integreated  Academic Management System & reoe  based dashboards 
 
 A Flask-based student academic management application with separate dashboards for Admin, HOD, Faculty, and Students.
 
