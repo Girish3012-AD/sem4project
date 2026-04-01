@@ -8,6 +8,7 @@ A Flask-based student academic management application with separate dashboards f
 - Faculty interface for assignments, attendance, marks, and leave requests
 - Student portal for assignments, attendance, results, performance analytics, and reports
 - Academic calendar support with seeded data
+- Hirerchial Structure based,
 
 ## Project Structure
 - `run.py` - Application entry point
